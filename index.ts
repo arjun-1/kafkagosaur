@@ -3,7 +3,6 @@ import "./wasm_exec.js";
 
 const go = new global.Go();
 
-
 const wasmCode = await Deno.readFile("./wasm.wasm");
 const inst = await WebAssembly.instantiate(wasmCode, go.importObject);
 
@@ -15,7 +14,5 @@ go.run(inst.instance);
 //   topic: "my-topic",
 // });
 
-
 // const message = await reader.readMessage()
 // console.log(message)
-

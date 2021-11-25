@@ -2,13 +2,13 @@ package interop
 
 import (
 	"errors"
+	"fmt"
 	"runtime/debug"
 	"syscall/js"
-	"fmt"
 )
 
 func NewPromise(executor func(resolve func(interface{}), reject func(error))) js.Value {
-	jsExecutor := js.FuncOf(func(this js.Value, args []js.Value) interface{} {	
+	jsExecutor := js.FuncOf(func(this js.Value, args []js.Value) interface{} {
 		resolve := func(value interface{}) { args[0].Invoke(value) }
 		reject := func(reason error) { args[1].Invoke(reason.Error()) }
 

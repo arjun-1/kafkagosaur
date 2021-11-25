@@ -14,3 +14,7 @@ clean-test:
 
 clean-build:
 	rm wasm.wasm
+
+lint:
+	deno fmt
+	gofmt -w .
