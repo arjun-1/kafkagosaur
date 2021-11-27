@@ -9,10 +9,10 @@ import (
 )
 
 type jsReader struct {
-	underlying kafka.Reader
+	underlying *kafka.Reader
 }
 
-func (r *jsReader) readMessage() js.Value {
+func (r *jsReader) readMessagePromise() js.Value {
 	return interop.NewPromise(func(resolve func(interface{}), reject func(error)) {
 		message, err := r.underlying.ReadMessage(context.Background())
 
@@ -22,14 +22,28 @@ func (r *jsReader) readMessage() js.Value {
 
 		// TODO map to object
 		resolve(message.Topic)
-
 	})
 }
 
-func (r *jsReader) close() js.Value {
+func (r *jsReader) closePromise() js.Value {
 	return interop.NewPromise(func(resolve func(interface{}), reject func(error)) {
 		resolve(r.underlying.Close())
 	})
+}
+
+func (r *jsReader) toJSObject() map[string]interface{} {
+	return map[string]interface{}{
+		"readMessage": js.FuncOf(
+			func(this js.Value, args []js.Value) interface{} {
+				return r.readMessagePromise()
+			},
+		),
+		"close": js.FuncOf(
+			func(this js.Value, args []js.Value) interface{} {
+				return r.closePromise()
+			},
+		),
+	}
 }
 
 func newJsReader(kafkaReaderConfig kafka.ReaderConfig) *jsReader {
@@ -40,7 +54,7 @@ func newJsReader(kafkaReaderConfig kafka.ReaderConfig) *jsReader {
 	reader := kafka.NewReader(kafkaReaderConfig)
 
 	return &jsReader{
-		underlying: *reader,
+		underlying: reader,
 	}
 }
 
@@ -54,19 +68,10 @@ var JsNewJsReader = js.FuncOf(func(this js.Value, args []js.Value) interface{} {
 		Topic:   jsReaderConfig.Get("topic").String(),
 	}
 
+	// TODO recover GET panic
+
 	reader := newJsReader(readerConfig)
 
-	return map[string]interface{}{
-		"readMessage": js.FuncOf(
-			func(this js.Value, args []js.Value) interface{} {
-				return reader.readMessage()
-			},
-		),
-		"close": js.FuncOf(
-			func(this js.Value, args []js.Value) interface{} {
-				return reader.close()
-			},
-		),
-	}
+	return reader.toJSObject()
 
 })

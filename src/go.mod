@@ -2,7 +2,7 @@ module github.com/arjun-1/deno-wasm-experiment
 
 go 1.17
 
-require github.com/segmentio/kafka-go v0.4.23
+require github.com/segmentio/kafka-go v0.4.25
 
 require (
 	github.com/golang/snappy v0.0.1 // indirect

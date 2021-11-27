@@ -1,10 +1,10 @@
 all: build
 
 build:
-	GOOS=js GOARCH=wasm go build -o wasm.wasm
+	cd src; GOOS=js GOARCH=wasm go build -o ../bin/wasm.wasm
 
 run:
-	deno run --allow-read --allow-net index.ts
+	deno run --allow-read --allow-net lib/index.ts
 
 test:
 	docker-compose up -d
@@ -13,7 +13,7 @@ clean-test:
 	docker-compose down
 
 clean-build:
-	rm wasm.wasm
+	rm bin/wasm.wasm
 
 lint:
 	deno fmt

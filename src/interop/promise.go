@@ -8,7 +8,9 @@ import (
 )
 
 func NewPromise(executor func(resolve func(interface{}), reject func(error))) js.Value {
+
 	jsExecutor := js.FuncOf(func(this js.Value, args []js.Value) interface{} {
+
 		resolve := func(value interface{}) { args[0].Invoke(value) }
 		reject := func(reason error) { args[1].Invoke(reason.Error()) }
 
@@ -21,6 +23,7 @@ func NewPromise(executor func(resolve func(interface{}), reject func(error))) js
 
 		return nil
 	})
+
 	defer jsExecutor.Release()
 
 	return js.Global().Get("Promise").New(jsExecutor)
