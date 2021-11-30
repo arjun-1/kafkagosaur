@@ -1,4 +1,4 @@
-module github.com/arjun-1/deno-wasm-experiment
+module github.com/arjun-1/kafkagosaur
 
 go 1.17
 

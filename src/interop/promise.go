@@ -29,7 +29,15 @@ func NewPromise(executor func(resolve func(interface{}), reject func(error))) js
 	return js.Global().Get("Promise").New(jsExecutor)
 }
 
+func defaultErrorFn(reason js.Value) error {
+	return errors.New(js.Global().Get("JSON").Call("stringify", reason).String())
+}
+
 func Await(promiseLike js.Value) (js.Value, error) {
+	return AwaitWithErrorMapping(promiseLike, defaultErrorFn)
+}
+
+func AwaitWithErrorMapping(promiseLike js.Value, errorFn func(js.Value) error) (js.Value, error) {
 	value := make(chan js.Value)
 	defer close(value)
 
@@ -54,7 +62,7 @@ func Await(promiseLike js.Value) (js.Value, error) {
 	case v := <-value:
 		return v, nil
 	case r := <-reason:
-		return js.Undefined(), errors.New(r.String())
+		return js.Undefined(), errorFn(r)
 	}
 
 }

@@ -5,7 +5,5 @@ declare namespace global {
     importObject: WebAssembly.Imports;
 
     run(instance: WebAssembly.Instance): Promise<unknown>;
-
-    exports: any;
   }
 }

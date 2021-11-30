@@ -1,7 +1,9 @@
+.PHONY: test
+
 all: build
 
 build:
-	cd src; GOOS=js GOARCH=wasm go build -o ../bin/wasm.wasm
+	cd src; GOOS=js GOARCH=wasm go build -o ../bin/kafkagosaur.wasm
 
 run:
 	deno run --allow-read --allow-net lib/index.ts
@@ -9,11 +11,14 @@ run:
 test:
 	docker-compose up -d
 
+setup-test-data:
+
+
 clean-test:
 	docker-compose down
 
 clean-build:
-	rm bin/wasm.wasm
+	rm bin/kafkagosaur.wasm
 
 lint:
 	deno fmt

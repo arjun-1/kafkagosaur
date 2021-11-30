@@ -2,8 +2,10 @@ package interop
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"net"
+	"os"
 	"strconv"
 	"syscall"
 	"syscall/js"
@@ -29,16 +31,25 @@ type denoTCPConn struct {
 	jsConn js.Value
 }
 
+func mapDeadlineError(reason js.Value) error {
+	if reason.Get("name").String() == "DeadlineError" {
+		return os.ErrDeadlineExceeded
+	}
+
+	return defaultErrorFn(reason)
+}
+
 func (c *denoTCPConn) Close() error {
 	c.jsConn.Call("close")
+	Await(c.jsConn.Call("closeWrite"))
 	return nil
 }
 
 func (c *denoTCPConn) Read(b []byte) (n int, err error) {
+	fmt.Println("reading!")
 
 	jsBytes := NewUint8Array(len(b))
-	value, err := Await(c.jsConn.Call("read", jsBytes))
-	js.CopyBytesToGo(b, jsBytes)
+	value, err := AwaitWithErrorMapping(c.jsConn.Call("read", jsBytes), mapDeadlineError)
 
 	if err != nil {
 		return 0, err
@@ -47,14 +58,17 @@ func (c *denoTCPConn) Read(b []byte) (n int, err error) {
 		return 0, io.EOF
 	}
 
+	js.CopyBytesToGo(b, jsBytes)
+
 	return value.Int(), nil
 }
 
 func (c *denoTCPConn) Write(b []byte) (n int, err error) {
+	fmt.Println("writing!")
 	jsBytes := NewUint8Array(len(b))
 	js.CopyBytesToJS(jsBytes, b)
 
-	value, err := Await(c.jsConn.Call("write", jsBytes))
+	value, err := AwaitWithErrorMapping(c.jsConn.Call("write", jsBytes), mapDeadlineError)
 
 	if err != nil {
 		return 0, err
@@ -80,15 +94,23 @@ func (c *denoTCPConn) RemoteAddr() net.Addr {
 }
 
 func (c *denoTCPConn) SetDeadline(t time.Time) error {
-	return syscall.ENOTSUP
+	err := c.SetReadDeadline(t)
+
+	if err != nil {
+		return c.SetWriteDeadline(t)
+	}
+
+	return err
 }
 
 func (c *denoTCPConn) SetReadDeadline(t time.Time) error {
-	return syscall.ENOTSUP
+	c.jsConn.Call("setReadDeadline", t.UnixMilli())
+	return nil
 }
 
 func (c *denoTCPConn) SetWriteDeadline(t time.Time) error {
-	return syscall.ENOTSUP
+	c.jsConn.Call("setWriteDeadline", t.UnixMilli())
+	return nil
 }
 
 func NewDenoConn(ctx context.Context, network string, address string) (net.Conn, error) {
@@ -113,7 +135,7 @@ func NewDenoConn(ctx context.Context, network string, address string) (net.Conn,
 		"port":      portInt,
 	}
 
-	jsTCPConn, err := Await(js.Global().Get("Deno").Call("connect", connectOptions))
+	jsTCPConn, err := Await(js.Global().Call("connectWithDeadline", connectOptions))
 
 	if err != nil {
 		return nil, err
