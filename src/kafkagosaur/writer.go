@@ -102,14 +102,17 @@ var NewWriterJsFunc = js.FuncOf(func(this js.Value, args []js.Value) interface{}
 		Dial: interop.NewDenoConn,
 	}
 
+	if jsIdleTimeout := writerConfig.Get("idleTimeout"); !jsIdleTimeout.IsUndefined() {
+		transport.IdleTimeout = time.Duration(jsIdleTimeout.Int()) * time.Millisecond
+	}
+
 	kafkaWriter := kafka.Writer{
 		Addr:      kafka.TCP(writerConfig.Get("address").String()),
 		Logger:    log.Default(),
 		Transport: transport,
 	}
 
-	jsTopic := writerConfig.Get("topic")
-	if !jsTopic.IsUndefined() {
+	if jsTopic := writerConfig.Get("topic"); !jsTopic.IsUndefined() {
 		kafkaWriter.Topic = jsTopic.String()
 	}
 	// TODO recover GET panic

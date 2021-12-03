@@ -2,7 +2,6 @@ package interop
 
 import (
 	"context"
-	"fmt"
 	"io"
 	"net"
 	"os"
@@ -29,6 +28,7 @@ func (c *denoNetAddr) String() string {
 
 type denoTCPConn struct {
 	jsConn js.Value
+	ctx    context.Context
 }
 
 func mapDeadlineError(reason js.Value) error {
@@ -41,15 +41,14 @@ func mapDeadlineError(reason js.Value) error {
 
 func (c *denoTCPConn) Close() error {
 	c.jsConn.Call("close")
-	Await(c.jsConn.Call("closeWrite"))
+	Await(c.ctx, c.jsConn.Call("closeWrite"))
 	return nil
 }
 
 func (c *denoTCPConn) Read(b []byte) (n int, err error) {
-	fmt.Println("reading!")
 
 	jsBytes := NewUint8Array(len(b))
-	value, err := AwaitWithErrorMapping(c.jsConn.Call("read", jsBytes), mapDeadlineError)
+	value, err := AwaitWithErrorMapping(c.ctx, c.jsConn.Call("read", jsBytes), mapDeadlineError)
 
 	if err != nil {
 		return 0, err
@@ -64,11 +63,10 @@ func (c *denoTCPConn) Read(b []byte) (n int, err error) {
 }
 
 func (c *denoTCPConn) Write(b []byte) (n int, err error) {
-	fmt.Println("writing!")
 	jsBytes := NewUint8Array(len(b))
 	js.CopyBytesToJS(jsBytes, b)
 
-	value, err := AwaitWithErrorMapping(c.jsConn.Call("write", jsBytes), mapDeadlineError)
+	value, err := AwaitWithErrorMapping(c.ctx, c.jsConn.Call("write", jsBytes), mapDeadlineError)
 
 	if err != nil {
 		return 0, err
@@ -135,7 +133,7 @@ func NewDenoConn(ctx context.Context, network string, address string) (net.Conn,
 		"port":      portInt,
 	}
 
-	jsTCPConn, err := Await(js.Global().Call("connectWithDeadline", connectOptions))
+	jsTCPConn, err := Await(ctx, js.Global().Call("connectWithDeadline", connectOptions))
 
 	if err != nil {
 		return nil, err
@@ -143,6 +141,7 @@ func NewDenoConn(ctx context.Context, network string, address string) (net.Conn,
 
 	denoConn := &denoTCPConn{
 		jsConn: jsTCPConn,
+		ctx:    ctx,
 	}
 
 	return denoConn, nil

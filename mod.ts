@@ -1,51 +1,9 @@
 // @deno-types="./global.d.ts"
 import "./lib/wasm_exec.js";
 import { setOnGlobal as setConnectWithDeadlineOnGlobal } from "./connection-with-deadline.ts";
-
-export interface KafkaConn {
-  apiVersions: () => Promise<string[]>;
-  close: () => Promise<void>;
-}
-
-export interface Dialer {
-  dial: (network: "tcp", address: string) => Promise<KafkaConn>;
-}
-
-export type MessageRead = {
-  topic: string;
-  partition: number;
-  time: number;
-  key: Uint8Array;
-  value: Uint8Array;
-};
-
-export type ReaderConfig = {
-  brokers: string[];
-  topic: string;
-  groupId: string;
-};
-
-export interface Reader {
-  readMessage: () => Promise<MessageRead>;
-  close: () => Promise<void>;
-}
-
-export type MessageWrite = {
-  topic?: string;
-  time?: number;
-  key?: Uint8Array;
-  value: Uint8Array;
-};
-
-export type WriterConfig = {
-  topic?: string;
-  address: string;
-};
-
-export interface Writer {
-  writeMessages: (msgs: MessageWrite[]) => Promise<null>;
-  close: () => Promise<void>;
-}
+import { Dialer } from "./dialer.ts";
+import { Reader, ReaderConfig } from "./reader.ts";
+import { Writer, WriterConfig } from "./writer.ts";
 
 const runGoWasm = async (wasmFilePath: string): Promise<unknown> => {
   const go = new global.Go();
@@ -58,7 +16,7 @@ const runGoWasm = async (wasmFilePath: string): Promise<unknown> => {
   return go.run(instiatedSource.instance);
 };
 
-const delay = (ms: number): Promise<unknown> =>
+export const delay = (ms: number): Promise<unknown> =>
   new Promise((resolve) => setTimeout(resolve, ms));
 
 const nextBackoffMs = (backoffMs: number): number =>

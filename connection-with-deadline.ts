@@ -58,5 +58,6 @@ const connect = async (options: Deno.ConnectOptions) => {
   return new ConnectionWithDeadline(conn);
 };
 
-export const setOnGlobal = () =>
+export const setOnGlobal = () => {
   (globalThis as Record<string, unknown>).connectWithDeadline = connect;
+};

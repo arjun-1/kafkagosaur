@@ -9,16 +9,10 @@ run:
 	deno run --allow-read --allow-net lib/index.ts
 
 test:
-	docker-compose up -d
+	deno test --allow-read --allow-net
 
-setup-test-data:
-
-
-clean-test:
-	docker-compose down
-
-clean-build:
-	rm bin/kafkagosaur.wasm
+docker:
+	docker-compose up
 
 lint:
 	deno fmt
