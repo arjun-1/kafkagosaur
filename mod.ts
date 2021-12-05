@@ -1,5 +1,6 @@
 // @deno-types="./global.d.ts"
 import "./lib/wasm_exec.js";
+import { deadline, DeadlineError, delay } from "./deps.ts";
 import { setOnGlobal as setConnectWithDeadlineOnGlobal } from "./connection-with-deadline.ts";
 import { Dialer } from "./dialer.ts";
 import { Reader, ReaderConfig } from "./reader.ts";
@@ -16,29 +17,31 @@ const runGoWasm = async (wasmFilePath: string): Promise<unknown> => {
   return go.run(instiatedSource.instance);
 };
 
-export const delay = (ms: number): Promise<unknown> =>
-  new Promise((resolve) => setTimeout(resolve, ms));
-
-const nextBackoffMs = (backoffMs: number): number =>
-  initialBackoffMs + backoffMs;
-
-const initialBackoffMs = 30;
-const maxDelayMs = 1000;
-
-const untilGloballyDefined = async (
+const untilGloballyDefined = (
   key: string,
-  backoffMs: number = initialBackoffMs,
 ): Promise<unknown> => {
-  if (backoffMs >= maxDelayMs) {
-    return Promise.reject(`Global key ${key} undefined`);
-  }
+  const initialBackoffMs = 30;
+  const maxDelayMs = 1000;
 
-  const value = (global as Record<string, unknown>)[key];
-  if (value !== undefined) return Promise.resolve(value);
-  else {
-    await delay(backoffMs);
-    return untilGloballyDefined(key, nextBackoffMs(backoffMs));
-  }
+  const nextBackoffMs = (backoffMs: number): number =>
+    initialBackoffMs + backoffMs;
+
+  const loop = async (
+    backoffMs: number = initialBackoffMs,
+  ): Promise<unknown> => {
+    const value = (global as Record<string, unknown>)[key];
+    if (value !== undefined) return Promise.resolve(value);
+    else {
+      await delay(backoffMs);
+      return loop(nextBackoffMs(backoffMs));
+    }
+  };
+
+  return deadline(loop(), maxDelayMs).catch((e) => {
+    if (e instanceof DeadlineError) {
+      Promise.reject(`Global key ${key} undefined`);
+    } else Promise.reject(e);
+  });
 };
 
 class KafkaGoSaur {

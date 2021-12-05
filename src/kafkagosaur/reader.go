@@ -9,6 +9,7 @@ import (
 
 type reader struct {
 	underlying *kafka.Reader
+	ctx context.Context
 }
 
 func messageToJSObject(m kafka.Message) map[string]interface{} {
@@ -28,7 +29,7 @@ func messageToJSObject(m kafka.Message) map[string]interface{} {
 }
 
 func (r *reader) readMessagePromise() js.Value {
-	return interop.NewPromise(func(resolve func(interface{}), reject func(error)) {
+	return interop.NewPromise(r.ctx, func(resolve func(interface{}), reject func(error)) {
 		message, err := r.underlying.ReadMessage(context.Background())
 
 		if err != nil {

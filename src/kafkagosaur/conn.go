@@ -1,18 +1,21 @@
 package kafkagosaur
 
 import (
+	"context"
 	"fmt"
+	"syscall/js"
+
 	"github.com/arjun-1/kafkagosaur/interop"
 	"github.com/segmentio/kafka-go"
-	"syscall/js"
 )
 
 type conn struct {
 	underlying *kafka.Conn
+	ctx        context.Context
 }
 
 func (c *conn) apiVersionsPromise() js.Value {
-	return interop.NewPromise(func(resolve func(interface{}), reject func(error)) {
+	return interop.NewPromise(c.ctx, func(resolve func(interface{}), reject func(error)) {
 		apiVersions, err := c.underlying.ApiVersions()
 
 		if err != nil {
@@ -31,7 +34,7 @@ func (c *conn) apiVersionsPromise() js.Value {
 }
 
 func (c *conn) closePromise() js.Value {
-	return interop.NewPromise(func(resolve func(interface{}), reject func(error)) {
+	return interop.NewPromise(c.ctx, func(resolve func(interface{}), reject func(error)) {
 		err := c.underlying.Close()
 
 		if err != nil {

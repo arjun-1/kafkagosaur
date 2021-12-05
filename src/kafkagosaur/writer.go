@@ -12,40 +12,37 @@ import (
 
 type writer struct {
 	underlying *kafka.Writer
+	ctx        context.Context
 }
 
 func jsObjectToMessage(jsObject js.Value) kafka.Message {
 	message := kafka.Message{}
 
-	jsKey := jsObject.Get("key")
-	if !jsKey.IsUndefined() {
+	if jsKey := jsObject.Get("key"); !jsKey.IsUndefined() {
 		key := make([]byte, jsKey.Length())
 		js.CopyBytesToGo(key, jsKey)
 		message.Key = key
 	}
 
-	jsValue := jsObject.Get("value")
-	if !jsValue.IsUndefined() {
+	if jsValue := jsObject.Get("value"); !jsValue.IsUndefined() {
 		value := make([]byte, jsValue.Length())
 		js.CopyBytesToGo(value, jsValue)
 		message.Value = value
 	}
 
-	jsTime := jsObject.Get("time")
-	if !jsTime.IsUndefined() {
+	if jsTime := jsObject.Get("time"); !jsTime.IsUndefined() {
 		time := time.UnixMilli(int64(jsTime.Int()))
 		message.Time = time
 	}
 
-	jsTopic := jsObject.Get("topic")
-	if !jsTopic.IsUndefined() {
+	if jsTopic := jsObject.Get("topic"); !jsTopic.IsUndefined() {
 		message.Topic = jsTopic.String()
 	}
 
 	return message
 }
 
-func (w *writer) writeMessagesPromise(msgs []kafka.Message) js.Value {
+func (w *writer) writeMessagesPromise(ctx context.Context, msgs []kafka.Message) js.Value {
 	return interop.NewPromise(func(resolve func(interface{}), reject func(error)) {
 		err := w.underlying.WriteMessages(context.Background(), msgs...)
 
@@ -57,7 +54,7 @@ func (w *writer) writeMessagesPromise(msgs []kafka.Message) js.Value {
 	})
 }
 
-func (w *writer) closePromise() js.Value {
+func (w *writer) closePromise(ctx context.Context) js.Value {
 	return interop.NewPromise(func(resolve func(interface{}), reject func(error)) {
 		resolve(w.underlying.Close())
 	})
@@ -76,12 +73,12 @@ func (w *writer) toJSObject() map[string]interface{} {
 					msgs[i] = jsObjectToMessage(jsMsgs.Index(i))
 				}
 
-				return w.writeMessagesPromise(msgs)
+				return w.writeMessagesPromise(w.ctx, msgs)
 			},
 		),
 		"close": js.FuncOf(
 			func(this js.Value, args []js.Value) interface{} {
-				return w.closePromise()
+				return w.closePromise(w.ctx)
 			},
 		),
 	}
@@ -91,6 +88,7 @@ func newWriter(kafkaWriter kafka.Writer) *writer {
 
 	return &writer{
 		underlying: &kafkaWriter,
+		ctx:        context.Background(),
 	}
 }
 

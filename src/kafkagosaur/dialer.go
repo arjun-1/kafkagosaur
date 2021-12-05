@@ -1,17 +1,20 @@
 package kafkagosaur
 
 import (
+	"context"
+	"syscall/js"
+
 	"github.com/arjun-1/kafkagosaur/interop"
 	"github.com/segmentio/kafka-go"
-	"syscall/js"
 )
 
 type dialer struct {
 	underlying *kafka.Dialer
+	ctx context.Context
 }
 
 func (d *dialer) dialPromise(network string, address string) js.Value {
-	return interop.NewPromise(func(resolve func(interface{}), reject func(error)) {
+	return interop.NewPromise(d.ctx, func(resolve func(interface{}), reject func(error)) {
 		kafkaConn, err := d.underlying.Dial(network, address)
 
 		if err != nil {
@@ -20,6 +23,7 @@ func (d *dialer) dialPromise(network string, address string) js.Value {
 
 		jsConn := conn{
 			kafkaConn,
+			ctx,
 		}
 
 		resolve(jsConn.toJSObject())
@@ -34,7 +38,7 @@ func (d *dialer) toJSObject() map[string]interface{} {
 				network := args[0].String()
 				address := args[1].String()
 
-				return d.dialPromise(network, address)
+				return d.dialPromise(d.ctx, network, address)
 			},
 		),
 	}
@@ -47,6 +51,7 @@ func newDialer() *dialer {
 
 	return &dialer{
 		underlying: kafkaDialer,
+		ctx: context.Background(),
 	}
 }
 

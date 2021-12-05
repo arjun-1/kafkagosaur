@@ -1,4 +1,5 @@
-import KafkaGoSaur, { delay } from "../../mod.ts";
+import KafkaGoSaur from "../../mod.ts";
+import { delay } from "../../deps.ts";
 import { Writer } from "../../writer.ts";
 
 const kafkaGoSaur = new KafkaGoSaur();
@@ -11,7 +12,7 @@ const writerConfig = {
   idleTimeout: 10,
 };
 
-const withWriter = async <T>(
+export const withWriter = async <T>(
   resultFn: (writer: Writer) => Promise<T>,
 ): Promise<T> => {
   const writer = await kafkaGoSaur.writer(writerConfig);

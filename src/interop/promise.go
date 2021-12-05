@@ -8,7 +8,7 @@ import (
 	"syscall/js"
 )
 
-func NewPromise(executor func(resolve func(interface{}), reject func(error))) js.Value {
+func NewPromise(ctx context.Context, executor func(resolve func(interface{}), reject func(error))) js.Value {
 
 	jsExecutor := js.FuncOf(func(this js.Value, args []js.Value) interface{} {
 
