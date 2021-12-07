@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/arjun-1/kafkagosaur/kafkagosaur"
+	"github.com/arjun-1/kafkagosaur/src/kafkagosaur"
 	"syscall/js"
 )
 

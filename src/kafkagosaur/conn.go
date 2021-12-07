@@ -2,7 +2,7 @@ package kafkagosaur
 
 import (
 	"fmt"
-	"github.com/arjun-1/kafkagosaur/interop"
+	"github.com/arjun-1/kafkagosaur/src/interop"
 	"github.com/segmentio/kafka-go"
 	"syscall/js"
 )

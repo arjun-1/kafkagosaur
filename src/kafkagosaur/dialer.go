@@ -4,7 +4,7 @@ import (
 	"context"
 	"syscall/js"
 
-	"github.com/arjun-1/kafkagosaur/interop"
+	"github.com/arjun-1/kafkagosaur/src/interop"
 	"github.com/segmentio/kafka-go"
 )
 

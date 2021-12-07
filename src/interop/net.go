@@ -41,15 +41,6 @@ type denoTCPConn struct {
 	closeOnce sync.Once
 }
 
-func (c *denoTCPConn) Close() error {
-	c.closeOnce.Do(func() {
-		c.jsConn.Call("close")
-		Await(c.jsConn.Call("closeWrite"))
-	})
-
-	return nil
-}
-
 func (c *denoTCPConn) Read(b []byte) (n int, err error) {
 
 	jsBytes := NewUint8Array(len(b))
@@ -113,6 +104,15 @@ func (c *denoTCPConn) SetReadDeadline(t time.Time) error {
 
 func (c *denoTCPConn) SetWriteDeadline(t time.Time) error {
 	c.jsConn.Call("setWriteDeadline", t.UnixMilli())
+	return nil
+}
+
+func (c *denoTCPConn) Close() error {
+	c.closeOnce.Do(func() {
+		c.jsConn.Call("close")
+		Await(c.jsConn.Call("closeWrite"))
+	})
+
 	return nil
 }
 
