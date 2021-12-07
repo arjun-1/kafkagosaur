@@ -1,8 +1,7 @@
 import { assertEquals } from "../deps.ts";
-import { kafkaGoSaur, readerConfig } from "./setup.ts";
+import { kafkaGoSaur, readerConfig, withWriter } from "./setup.ts";
 import { Reader } from "../../reader.ts";
 import { MessageWrite } from "../../writer.ts";
-import { withWriter } from "./writer.test.ts";
 
 const withReader = async <T>(
   resultFn: (reader: Reader) => Promise<T>,

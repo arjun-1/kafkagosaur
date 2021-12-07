@@ -1,5 +1,4 @@
 import { assert } from "../deps.ts";
-import { delay } from "../../deps.ts";
 import { kafkaBroker, kafkaGoSaur } from "./setup.ts";
 import { KafkaConn } from "../../dialer.ts";
 
@@ -12,7 +11,6 @@ const withKafkaConn = async <T>(
   const result = await resultFn(conn);
   await conn.close();
 
-  await delay(100);
   return result;
 };
 
