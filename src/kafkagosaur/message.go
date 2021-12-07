@@ -1,6 +1,7 @@
 package kafkagosaur
 
 import (
+	"github.com/arjun-1/kafkagosaur/src/interop"
 	"github.com/segmentio/kafka-go"
 	"syscall/js"
 	"time"
@@ -39,4 +40,21 @@ func jsObjectToMessage(jsObject js.Value) kafka.Message {
 	}
 
 	return message
+}
+
+func messageToJSObject(m kafka.Message) map[string]interface{} {
+	key := interop.NewUint8Array(len(m.Key))
+	js.CopyBytesToJS(key, m.Key)
+
+	value := interop.NewUint8Array(len(m.Value))
+	js.CopyBytesToJS(value, m.Value)
+
+	return map[string]interface{}{
+		"offset":    m.Offset,
+		"topic":     m.Topic,
+		"partition": m.Partition,
+		"time":      m.Time.UnixMilli(),
+		"key":       key,
+		"value":     value,
+	}
 }

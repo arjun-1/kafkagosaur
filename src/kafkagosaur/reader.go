@@ -12,22 +12,6 @@ type reader struct {
 	ctx        context.Context
 }
 
-func messageToJSObject(m kafka.Message) map[string]interface{} {
-	key := interop.NewUint8Array(len(m.Key))
-	js.CopyBytesToJS(key, m.Key)
-
-	value := interop.NewUint8Array(len(m.Value))
-	js.CopyBytesToJS(value, m.Value)
-
-	return map[string]interface{}{
-		"topic":     m.Topic,
-		"partition": m.Partition,
-		"time":      m.Time.UnixMilli(),
-		"key":       key,
-		"value":     value,
-	}
-}
-
 func (r *reader) close() js.Value {
 	return interop.NewPromise(func(resolve func(interface{}), reject func(error)) {
 		err := r.underlying.Close()
@@ -49,6 +33,20 @@ func (r *reader) commitMessages(msgs []kafka.Message) js.Value {
 		}
 
 		resolve(nil)
+	})
+}
+
+// func (r *reader) config(msgs []kafka.Message) js.Value {}
+
+func (r *reader) fetchMessage() js.Value {
+	return interop.NewPromise(func(resolve func(interface{}), reject func(error)) {
+		msg, err := r.underlying.FetchMessage(r.ctx)
+
+		if err != nil {
+			reject(err)
+		}
+
+		resolve(msg)
 	})
 }
 
@@ -83,6 +81,11 @@ func (r *reader) toJSObject() map[string]interface{} {
 				}
 
 				return r.commitMessages(msgs)
+			},
+		),
+		"fetchMessage": js.FuncOf(
+			func(this js.Value, args []js.Value) interface{} {
+				return r.fetchMessage()
 			},
 		),
 		"readMessage": js.FuncOf(
