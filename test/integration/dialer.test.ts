@@ -1,19 +1,18 @@
 import { assert } from "../deps.ts";
-import KafkaGoSaur from "../../mod.ts";
+import { delay } from "../../deps.ts";
+import { kafkaBroker, kafkaGoSaur } from "./setup.ts";
 import { KafkaConn } from "../../dialer.ts";
-
-const kafkaGoSaur = new KafkaGoSaur();
-const kafkaBroker = "localhost:29092";
-
-const dialer = await kafkaGoSaur.dialer();
 
 const withKafkaConn = async <T>(
   resultFn: (conn: KafkaConn) => Promise<T>,
 ): Promise<T> => {
+  const dialer = await kafkaGoSaur.dialer();
   const conn = await dialer.dial("tcp", kafkaBroker);
 
   const result = await resultFn(conn);
   await conn.close();
+
+  await delay(100);
   return result;
 };
 

@@ -1,16 +1,6 @@
-import KafkaGoSaur from "../../mod.ts";
+import { kafkaGoSaur, writerConfig } from "./setup.ts";
 import { delay } from "../../deps.ts";
 import { Writer } from "../../writer.ts";
-
-const kafkaGoSaur = new KafkaGoSaur();
-await delay(50);
-
-const kafkaBroker = "localhost:29092";
-const writerConfig = {
-  address: kafkaBroker,
-  topic: "my-topic",
-  idleTimeout: 10,
-};
 
 export const withWriter = async <T>(
   resultFn: (writer: Writer) => Promise<T>,

@@ -10,11 +10,11 @@ import (
 
 type dialer struct {
 	underlying *kafka.Dialer
-	ctx context.Context
+	ctx        context.Context
 }
 
 func (d *dialer) dialPromise(network string, address string) js.Value {
-	return interop.NewPromise(d.ctx, func(resolve func(interface{}), reject func(error)) {
+	return interop.NewPromise(func(resolve func(interface{}), reject func(error)) {
 		kafkaConn, err := d.underlying.Dial(network, address)
 
 		if err != nil {
@@ -23,7 +23,6 @@ func (d *dialer) dialPromise(network string, address string) js.Value {
 
 		jsConn := conn{
 			kafkaConn,
-			ctx,
 		}
 
 		resolve(jsConn.toJSObject())
@@ -38,25 +37,20 @@ func (d *dialer) toJSObject() map[string]interface{} {
 				network := args[0].String()
 				address := args[1].String()
 
-				return d.dialPromise(d.ctx, network, address)
+				return d.dialPromise(network, address)
 			},
 		),
 	}
 }
 
-func newDialer() *dialer {
+var NewDialerJsFunc = js.FuncOf(func(this js.Value, args []js.Value) interface{} {
 	kafkaDialer := &kafka.Dialer{
 		DialFunc: interop.NewDenoConn,
 	}
 
-	return &dialer{
+	return (&dialer{
 		underlying: kafkaDialer,
-		ctx: context.Background(),
-	}
-}
+		ctx:        context.Background(),
+	}).toJSObject()
 
-var NewDialerJsFunc = js.FuncOf(func(this js.Value, args []js.Value) interface{} {
-	dialer := newDialer()
-
-	return dialer.toJSObject()
 })

@@ -1,14 +1,13 @@
 package interop
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"runtime/debug"
 	"syscall/js"
 )
 
-func NewPromise(ctx context.Context, executor func(resolve func(interface{}), reject func(error))) js.Value {
+func NewPromise(executor func(resolve func(interface{}), reject func(error))) js.Value {
 
 	jsExecutor := js.FuncOf(func(this js.Value, args []js.Value) interface{} {
 
@@ -34,11 +33,11 @@ func defaultErrorFn(reason js.Value) error {
 	return errors.New(js.Global().Get("JSON").Call("stringify", reason).String())
 }
 
-func Await(ctx context.Context, promiseLike js.Value) (js.Value, error) {
-	return AwaitWithErrorMapping(ctx, promiseLike, defaultErrorFn)
+func Await(promiseLike js.Value) (js.Value, error) {
+	return AwaitWithErrorMapping(promiseLike, defaultErrorFn)
 }
 
-func AwaitWithErrorMapping(ctx context.Context, promiseLike js.Value, errorFn func(js.Value) error) (js.Value, error) {
+func AwaitWithErrorMapping(promiseLike js.Value, errorFn func(js.Value) error) (js.Value, error) {
 	value := make(chan js.Value)
 	defer close(value)
 

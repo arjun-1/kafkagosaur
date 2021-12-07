@@ -20,20 +20,15 @@ const runGoWasm = async (wasmFilePath: string): Promise<unknown> => {
 const untilGloballyDefined = (
   key: string,
 ): Promise<unknown> => {
-  const initialBackoffMs = 30;
+  const backoffMs = 30;
   const maxDelayMs = 1000;
 
-  const nextBackoffMs = (backoffMs: number): number =>
-    initialBackoffMs + backoffMs;
-
-  const loop = async (
-    backoffMs: number = initialBackoffMs,
-  ): Promise<unknown> => {
+  const loop = async (): Promise<unknown> => {
     const value = (global as Record<string, unknown>)[key];
     if (value !== undefined) return Promise.resolve(value);
     else {
       await delay(backoffMs);
-      return loop(nextBackoffMs(backoffMs));
+      return loop();
     }
   };
 

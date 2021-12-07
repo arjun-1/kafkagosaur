@@ -14,6 +14,9 @@ test:
 docker:
 	docker-compose up
 
+docker-clean:
+	docker-compose down
+
 lint:
 	deno fmt
 	gofmt -w .

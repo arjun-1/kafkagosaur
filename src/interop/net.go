@@ -6,6 +6,7 @@ import (
 	"net"
 	"os"
 	"strconv"
+	"sync"
 	"syscall"
 	"syscall/js"
 	"time"
@@ -26,11 +27,6 @@ func (c *denoNetAddr) String() string {
 	return net.JoinHostPort(c.jsAddr.Get("hostname").String(), c.jsAddr.Get("port").String())
 }
 
-type denoTCPConn struct {
-	jsConn js.Value
-	ctx    context.Context
-}
-
 func mapDeadlineError(reason js.Value) error {
 	if reason.Get("name").String() == "DeadlineError" {
 		return os.ErrDeadlineExceeded
@@ -39,16 +35,25 @@ func mapDeadlineError(reason js.Value) error {
 	return defaultErrorFn(reason)
 }
 
+type denoTCPConn struct {
+	jsConn    js.Value
+	ctx       context.Context
+	closeOnce sync.Once
+}
+
 func (c *denoTCPConn) Close() error {
-	c.jsConn.Call("close")
-	Await(c.ctx, c.jsConn.Call("closeWrite"))
+	c.closeOnce.Do(func() {
+		c.jsConn.Call("close")
+		Await(c.jsConn.Call("closeWrite"))
+	})
+
 	return nil
 }
 
 func (c *denoTCPConn) Read(b []byte) (n int, err error) {
 
 	jsBytes := NewUint8Array(len(b))
-	value, err := AwaitWithErrorMapping(c.ctx, c.jsConn.Call("read", jsBytes), mapDeadlineError)
+	value, err := AwaitWithErrorMapping(c.jsConn.Call("read", jsBytes), mapDeadlineError)
 
 	if err != nil {
 		return 0, err
@@ -66,7 +71,7 @@ func (c *denoTCPConn) Write(b []byte) (n int, err error) {
 	jsBytes := NewUint8Array(len(b))
 	js.CopyBytesToJS(jsBytes, b)
 
-	value, err := AwaitWithErrorMapping(c.ctx, c.jsConn.Call("write", jsBytes), mapDeadlineError)
+	value, err := AwaitWithErrorMapping(c.jsConn.Call("write", jsBytes), mapDeadlineError)
 
 	if err != nil {
 		return 0, err
@@ -133,7 +138,7 @@ func NewDenoConn(ctx context.Context, network string, address string) (net.Conn,
 		"port":      portInt,
 	}
 
-	jsTCPConn, err := Await(ctx, js.Global().Call("connectWithDeadline", connectOptions))
+	jsTCPConn, err := Await(js.Global().Call("connectWithDeadline", connectOptions))
 
 	if err != nil {
 		return nil, err

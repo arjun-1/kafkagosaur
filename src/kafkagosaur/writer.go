@@ -2,16 +2,16 @@ package kafkagosaur
 
 import (
 	"context"
+	"github.com/arjun-1/kafkagosaur/interop"
+	"github.com/segmentio/kafka-go"
 	"log"
 	"syscall/js"
 	"time"
-
-	"github.com/arjun-1/kafkagosaur/interop"
-	"github.com/segmentio/kafka-go"
 )
 
 type writer struct {
 	underlying *kafka.Writer
+	transport  *kafka.Transport
 	ctx        context.Context
 }
 
@@ -42,9 +42,9 @@ func jsObjectToMessage(jsObject js.Value) kafka.Message {
 	return message
 }
 
-func (w *writer) writeMessagesPromise(ctx context.Context, msgs []kafka.Message) js.Value {
+func (w *writer) writeMessagesPromise(msgs []kafka.Message) js.Value {
 	return interop.NewPromise(func(resolve func(interface{}), reject func(error)) {
-		err := w.underlying.WriteMessages(context.Background(), msgs...)
+		err := w.underlying.WriteMessages(w.ctx, msgs...)
 
 		if err != nil {
 			reject(err)
@@ -54,9 +54,14 @@ func (w *writer) writeMessagesPromise(ctx context.Context, msgs []kafka.Message)
 	})
 }
 
-func (w *writer) closePromise(ctx context.Context) js.Value {
+func (w *writer) closePromise() js.Value {
 	return interop.NewPromise(func(resolve func(interface{}), reject func(error)) {
-		resolve(w.underlying.Close())
+		err := w.underlying.Close()
+		if err != nil {
+			reject(err)
+		}
+		w.transport.CloseIdleConnections()
+		resolve(nil)
 	})
 }
 
@@ -73,22 +78,14 @@ func (w *writer) toJSObject() map[string]interface{} {
 					msgs[i] = jsObjectToMessage(jsMsgs.Index(i))
 				}
 
-				return w.writeMessagesPromise(w.ctx, msgs)
+				return w.writeMessagesPromise(msgs)
 			},
 		),
 		"close": js.FuncOf(
 			func(this js.Value, args []js.Value) interface{} {
-				return w.closePromise(w.ctx)
+				return w.closePromise()
 			},
 		),
-	}
-}
-
-func newWriter(kafkaWriter kafka.Writer) *writer {
-
-	return &writer{
-		underlying: &kafkaWriter,
-		ctx:        context.Background(),
 	}
 }
 
@@ -99,6 +96,8 @@ var NewWriterJsFunc = js.FuncOf(func(this js.Value, args []js.Value) interface{}
 	transport := &kafka.Transport{
 		Dial: interop.NewDenoConn,
 	}
+
+	// TODO recover GET panic
 
 	if jsIdleTimeout := writerConfig.Get("idleTimeout"); !jsIdleTimeout.IsUndefined() {
 		transport.IdleTimeout = time.Duration(jsIdleTimeout.Int()) * time.Millisecond
@@ -113,10 +112,11 @@ var NewWriterJsFunc = js.FuncOf(func(this js.Value, args []js.Value) interface{}
 	if jsTopic := writerConfig.Get("topic"); !jsTopic.IsUndefined() {
 		kafkaWriter.Topic = jsTopic.String()
 	}
-	// TODO recover GET panic
 
-	writer := newWriter(kafkaWriter)
-
-	return writer.toJSObject()
+	return (&writer{
+		underlying: &kafkaWriter,
+		transport:  transport,
+		ctx:        context.Background(),
+	}).toJSObject()
 
 })

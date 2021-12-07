@@ -9,7 +9,7 @@ import (
 
 type reader struct {
 	underlying *kafka.Reader
-	ctx context.Context
+	ctx        context.Context
 }
 
 func messageToJSObject(m kafka.Message) map[string]interface{} {
@@ -29,8 +29,8 @@ func messageToJSObject(m kafka.Message) map[string]interface{} {
 }
 
 func (r *reader) readMessagePromise() js.Value {
-	return interop.NewPromise(r.ctx, func(resolve func(interface{}), reject func(error)) {
-		message, err := r.underlying.ReadMessage(context.Background())
+	return interop.NewPromise(func(resolve func(interface{}), reject func(error)) {
+		message, err := r.underlying.ReadMessage(r.ctx)
 
 		if err != nil {
 			reject(err)
@@ -42,7 +42,13 @@ func (r *reader) readMessagePromise() js.Value {
 
 func (r *reader) closePromise() js.Value {
 	return interop.NewPromise(func(resolve func(interface{}), reject func(error)) {
-		resolve(r.underlying.Close())
+		err := r.underlying.Close()
+
+		if err != nil {
+			reject(err)
+		}
+
+		resolve(nil)
 	})
 }
 
@@ -61,21 +67,11 @@ func (r *reader) toJSObject() map[string]interface{} {
 	}
 }
 
-func newReader(kafkaReaderConfig kafka.ReaderConfig) *reader {
-	kafkaDialer := kafkaReaderConfig.Dialer
-	kafkaDialer.DialFunc = interop.NewDenoConn
-	kafkaReaderConfig.Dialer = kafkaDialer
-
-	kafkaReader := kafka.NewReader(kafkaReaderConfig)
-
-	return &reader{
-		underlying: kafkaReader,
-	}
-}
-
 var NewReaderJsFunc = js.FuncOf(func(this js.Value, args []js.Value) interface{} {
 	// TODO: input validation
 	readerConfig := args[0]
+
+	// TODO recover GET panic
 
 	kafkaReaderConfig := kafka.ReaderConfig{
 		Brokers: interop.MapToString(interop.ToSlice(readerConfig.Get("brokers"))),
@@ -83,10 +79,15 @@ var NewReaderJsFunc = js.FuncOf(func(this js.Value, args []js.Value) interface{}
 		Topic:   readerConfig.Get("topic").String(),
 	}
 
-	// TODO recover GET panic
+	kafkaReaderConfig.Dialer = &kafka.Dialer{
+		DialFunc: interop.NewDenoConn,
+	}
 
-	reader := newReader(kafkaReaderConfig)
+	kafkaReader := kafka.NewReader(kafkaReaderConfig)
 
-	return reader.toJSObject()
+	return (&reader{
+		underlying: kafkaReader,
+		ctx:        context.Background(),
+	}).toJSObject()
 
 })
