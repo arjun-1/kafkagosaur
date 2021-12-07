@@ -13,7 +13,7 @@ type dialer struct {
 	ctx        context.Context
 }
 
-func (d *dialer) dialPromise(network string, address string) js.Value {
+func (d *dialer) dial(network string, address string) js.Value {
 	return interop.NewPromise(func(resolve func(interface{}), reject func(error)) {
 		kafkaConn, err := d.underlying.Dial(network, address)
 
@@ -37,7 +37,7 @@ func (d *dialer) toJSObject() map[string]interface{} {
 				network := args[0].String()
 				address := args[1].String()
 
-				return d.dialPromise(network, address)
+				return d.dial(network, address)
 			},
 		),
 	}

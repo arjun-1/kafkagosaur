@@ -28,19 +28,7 @@ func messageToJSObject(m kafka.Message) map[string]interface{} {
 	}
 }
 
-func (r *reader) readMessagePromise() js.Value {
-	return interop.NewPromise(func(resolve func(interface{}), reject func(error)) {
-		message, err := r.underlying.ReadMessage(r.ctx)
-
-		if err != nil {
-			reject(err)
-		}
-
-		resolve(messageToJSObject(message))
-	})
-}
-
-func (r *reader) closePromise() js.Value {
+func (r *reader) close() js.Value {
 	return interop.NewPromise(func(resolve func(interface{}), reject func(error)) {
 		err := r.underlying.Close()
 
@@ -52,16 +40,54 @@ func (r *reader) closePromise() js.Value {
 	})
 }
 
+func (r *reader) commitMessages(msgs []kafka.Message) js.Value {
+	return interop.NewPromise(func(resolve func(interface{}), reject func(error)) {
+		err := r.underlying.CommitMessages(r.ctx, msgs...)
+
+		if err != nil {
+			reject(err)
+		}
+
+		resolve(nil)
+	})
+}
+
+func (r *reader) readMessage() js.Value {
+	return interop.NewPromise(func(resolve func(interface{}), reject func(error)) {
+		message, err := r.underlying.ReadMessage(r.ctx)
+
+		if err != nil {
+			reject(err)
+		}
+
+		resolve(messageToJSObject(message))
+	})
+}
+
 func (r *reader) toJSObject() map[string]interface{} {
 	return map[string]interface{}{
-		"readMessage": js.FuncOf(
-			func(this js.Value, args []js.Value) interface{} {
-				return r.readMessagePromise()
-			},
-		),
 		"close": js.FuncOf(
 			func(this js.Value, args []js.Value) interface{} {
-				return r.closePromise()
+				return r.close()
+			},
+		),
+		"commitMessages": js.FuncOf(
+			func(this js.Value, args []js.Value) interface{} {
+				// TODO: input validation
+
+				msgsJs := args[0]
+				msgs := make([]kafka.Message, msgsJs.Length())
+
+				for i := range msgs {
+					msgs[i] = jsObjectToMessage(msgsJs.Index(i))
+				}
+
+				return r.commitMessages(msgs)
+			},
+		),
+		"readMessage": js.FuncOf(
+			func(this js.Value, args []js.Value) interface{} {
+				return r.readMessage()
 			},
 		),
 	}

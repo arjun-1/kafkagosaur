@@ -9,7 +9,7 @@ import (
 
 func NewPromise(executor func(resolve func(interface{}), reject func(error))) js.Value {
 
-	jsExecutor := js.FuncOf(func(this js.Value, args []js.Value) interface{} {
+	executorJsFunc := js.FuncOf(func(this js.Value, args []js.Value) interface{} {
 
 		resolve := func(value interface{}) { args[0].Invoke(value) }
 		reject := func(reason error) { args[1].Invoke(reason.Error()) }
@@ -24,17 +24,17 @@ func NewPromise(executor func(resolve func(interface{}), reject func(error))) js
 		return nil
 	})
 
-	defer jsExecutor.Release()
+	defer executorJsFunc.Release()
 
-	return js.Global().Get("Promise").New(jsExecutor)
+	return js.Global().Get("Promise").New(executorJsFunc)
 }
 
-func defaultErrorFn(reason js.Value) error {
+func defaultError(reason js.Value) error {
 	return errors.New(js.Global().Get("JSON").Call("stringify", reason).String())
 }
 
 func Await(promiseLike js.Value) (js.Value, error) {
-	return AwaitWithErrorMapping(promiseLike, defaultErrorFn)
+	return AwaitWithErrorMapping(promiseLike, defaultError)
 }
 
 func AwaitWithErrorMapping(promiseLike js.Value, errorFn func(js.Value) error) (js.Value, error) {

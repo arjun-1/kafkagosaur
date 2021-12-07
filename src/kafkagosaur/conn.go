@@ -11,7 +11,7 @@ type conn struct {
 	underlying *kafka.Conn
 }
 
-func (c *conn) apiVersionsPromise() js.Value {
+func (c *conn) apiVersions() js.Value {
 	return interop.NewPromise(func(resolve func(interface{}), reject func(error)) {
 		apiVersions, err := c.underlying.ApiVersions()
 
@@ -30,7 +30,7 @@ func (c *conn) apiVersionsPromise() js.Value {
 	})
 }
 
-func (c *conn) closePromise() js.Value {
+func (c *conn) close() js.Value {
 	return interop.NewPromise(func(resolve func(interface{}), reject func(error)) {
 		err := c.underlying.Close()
 
@@ -46,12 +46,12 @@ func (c *conn) toJSObject() map[string]interface{} {
 	return map[string]interface{}{
 		"apiVersions": js.FuncOf(
 			func(this js.Value, args []js.Value) interface{} {
-				return c.apiVersionsPromise()
+				return c.apiVersions()
 			},
 		),
 		"close": js.FuncOf(
 			func(this js.Value, args []js.Value) interface{} {
-				return c.closePromise()
+				return c.close()
 			},
 		),
 	}

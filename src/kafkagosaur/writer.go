@@ -15,34 +15,7 @@ type writer struct {
 	ctx        context.Context
 }
 
-func jsObjectToMessage(jsObject js.Value) kafka.Message {
-	message := kafka.Message{}
-
-	if jsKey := jsObject.Get("key"); !jsKey.IsUndefined() {
-		key := make([]byte, jsKey.Length())
-		js.CopyBytesToGo(key, jsKey)
-		message.Key = key
-	}
-
-	if jsValue := jsObject.Get("value"); !jsValue.IsUndefined() {
-		value := make([]byte, jsValue.Length())
-		js.CopyBytesToGo(value, jsValue)
-		message.Value = value
-	}
-
-	if jsTime := jsObject.Get("time"); !jsTime.IsUndefined() {
-		time := time.UnixMilli(int64(jsTime.Int()))
-		message.Time = time
-	}
-
-	if jsTopic := jsObject.Get("topic"); !jsTopic.IsUndefined() {
-		message.Topic = jsTopic.String()
-	}
-
-	return message
-}
-
-func (w *writer) writeMessagesPromise(msgs []kafka.Message) js.Value {
+func (w *writer) writeMessages(msgs []kafka.Message) js.Value {
 	return interop.NewPromise(func(resolve func(interface{}), reject func(error)) {
 		err := w.underlying.WriteMessages(w.ctx, msgs...)
 
@@ -54,7 +27,7 @@ func (w *writer) writeMessagesPromise(msgs []kafka.Message) js.Value {
 	})
 }
 
-func (w *writer) closePromise() js.Value {
+func (w *writer) close() js.Value {
 	return interop.NewPromise(func(resolve func(interface{}), reject func(error)) {
 		err := w.underlying.Close()
 		if err != nil {
@@ -71,19 +44,19 @@ func (w *writer) toJSObject() map[string]interface{} {
 			func(this js.Value, args []js.Value) interface{} {
 				// TODO: input validation
 
-				jsMsgs := args[0]
-				msgs := make([]kafka.Message, jsMsgs.Length())
+				msgsJs := args[0]
+				msgs := make([]kafka.Message, msgsJs.Length())
 
 				for i := range msgs {
-					msgs[i] = jsObjectToMessage(jsMsgs.Index(i))
+					msgs[i] = jsObjectToMessage(msgsJs.Index(i))
 				}
 
-				return w.writeMessagesPromise(msgs)
+				return w.writeMessages(msgs)
 			},
 		),
 		"close": js.FuncOf(
 			func(this js.Value, args []js.Value) interface{} {
-				return w.closePromise()
+				return w.close()
 			},
 		),
 	}

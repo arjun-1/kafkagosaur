@@ -32,7 +32,7 @@ func mapDeadlineError(reason js.Value) error {
 		return os.ErrDeadlineExceeded
 	}
 
-	return defaultErrorFn(reason)
+	return defaultError(reason)
 }
 
 type denoTCPConn struct {
