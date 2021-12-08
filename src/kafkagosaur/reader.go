@@ -2,14 +2,15 @@ package kafkagosaur
 
 import (
 	"context"
+	"syscall/js"
+	"time"
+
 	"github.com/arjun-1/kafkagosaur/src/interop"
 	"github.com/segmentio/kafka-go"
-	"syscall/js"
 )
 
 type reader struct {
 	underlying *kafka.Reader
-	ctx        context.Context
 }
 
 func (r *reader) close() js.Value {
@@ -26,7 +27,7 @@ func (r *reader) close() js.Value {
 
 func (r *reader) commitMessages(msgs []kafka.Message) js.Value {
 	return interop.NewPromise(func(resolve func(interface{}), reject func(error)) {
-		err := r.underlying.CommitMessages(r.ctx, msgs...)
+		err := r.underlying.CommitMessages(context.Background(), msgs...)
 
 		if err != nil {
 			reject(err)
@@ -40,7 +41,7 @@ func (r *reader) commitMessages(msgs []kafka.Message) js.Value {
 
 func (r *reader) fetchMessage() js.Value {
 	return interop.NewPromise(func(resolve func(interface{}), reject func(error)) {
-		msg, err := r.underlying.FetchMessage(r.ctx)
+		msg, err := r.underlying.FetchMessage(context.Background())
 
 		if err != nil {
 			reject(err)
@@ -52,7 +53,7 @@ func (r *reader) fetchMessage() js.Value {
 
 func (r *reader) readMessage() js.Value {
 	return interop.NewPromise(func(resolve func(interface{}), reject func(error)) {
-		message, err := r.underlying.ReadMessage(r.ctx)
+		message, err := r.underlying.ReadMessage(context.Background())
 
 		if err != nil {
 			reject(err)
@@ -61,6 +62,32 @@ func (r *reader) readMessage() js.Value {
 		resolve(messageToJSObject(message))
 	})
 }
+
+func (r *reader) setOffset(offset int64) js.Value {
+	return interop.NewPromise(func(resolve func(interface{}), reject func(error)) {
+		err := r.underlying.SetOffset(offset)
+
+		if err != nil {
+			reject(err)
+		}
+
+		resolve(nil)
+	})
+}
+
+func (r *reader) setOffsetAt(t time.Time) js.Value {
+	return interop.NewPromise(func(resolve func(interface{}), reject func(error)) {
+		err := r.underlying.SetOffsetAt(context.Background(), t)
+
+		if err != nil {
+			reject(err)
+		}
+
+		resolve(nil)
+	})
+}
+
+// func (r *reader) Stats() js.Value {}
 
 func (r *reader) toJSObject() map[string]interface{} {
 	return map[string]interface{}{
@@ -93,30 +120,59 @@ func (r *reader) toJSObject() map[string]interface{} {
 				return r.readMessage()
 			},
 		),
+		"setOffset": js.FuncOf(
+			func(this js.Value, args []js.Value) interface{} {
+				offset := int64(args[0].Int())
+
+				return r.setOffset(offset)
+			},
+		),
+		"setOffsetAt": js.FuncOf(
+			func(this js.Value, args []js.Value) interface{} {
+				time := time.UnixMicro(int64(args[0].Int()))
+
+				return r.setOffsetAt(time)
+			},
+		),
 	}
 }
 
 var NewReaderJsFunc = js.FuncOf(func(this js.Value, args []js.Value) interface{} {
 	// TODO: input validation
-	readerConfig := args[0]
+	readerConfigJs := args[0]
 
 	// TODO recover GET panic
 
-	kafkaReaderConfig := kafka.ReaderConfig{
-		Brokers: interop.MapToString(interop.ToSlice(readerConfig.Get("brokers"))),
-		GroupID: readerConfig.Get("groupId").String(),
-		Topic:   readerConfig.Get("topic").String(),
+	kafkaReaderConfig := kafka.ReaderConfig{}
+
+	if brokers := readerConfigJs.Get("brokers"); !brokers.IsUndefined() {
+		kafkaReaderConfig.Brokers = interop.MapToString(interop.ToSlice(brokers))
 	}
 
-	kafkaReaderConfig.Dialer = &kafka.Dialer{
-		DialFunc: interop.NewDenoConn,
+	if groupId := readerConfigJs.Get("groupId"); !groupId.IsUndefined() {
+		kafkaReaderConfig.GroupID = groupId.String()
+	}
+
+	if topic := readerConfigJs.Get("topic"); !topic.IsUndefined() {
+		kafkaReaderConfig.Topic = topic.String()
+	}
+
+	if partition := readerConfigJs.Get("partition"); !partition.IsUndefined() {
+		kafkaReaderConfig.Partition = partition.Int()
+	}
+
+	if minBytes := readerConfigJs.Get("minBytes"); !minBytes.IsUndefined() {
+		kafkaReaderConfig.MinBytes = minBytes.Int()
+	}
+
+	if maxBytes := readerConfigJs.Get("maxByes"); !maxBytes.IsUndefined() {
+		kafkaReaderConfig.MinBytes = maxBytes.Int()
 	}
 
 	kafkaReader := kafka.NewReader(kafkaReaderConfig)
 
 	return (&reader{
 		underlying: kafkaReader,
-		ctx:        context.Background(),
 	}).toJSObject()
 
 })

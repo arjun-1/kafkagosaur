@@ -1,7 +1,6 @@
 package kafkagosaur
 
 import (
-	"context"
 	"syscall/js"
 
 	"github.com/arjun-1/kafkagosaur/src/interop"
@@ -10,7 +9,6 @@ import (
 
 type dialer struct {
 	underlying *kafka.Dialer
-	ctx        context.Context
 }
 
 func (d *dialer) dial(network string, address string) js.Value {
@@ -50,7 +48,6 @@ var NewDialerJsFunc = js.FuncOf(func(this js.Value, args []js.Value) interface{}
 
 	return (&dialer{
 		underlying: kafkaDialer,
-		ctx:        context.Background(),
 	}).toJSObject()
 
 })

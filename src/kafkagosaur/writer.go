@@ -12,12 +12,11 @@ import (
 type writer struct {
 	underlying *kafka.Writer
 	transport  *kafka.Transport
-	ctx        context.Context
 }
 
 func (w *writer) writeMessages(msgs []kafka.Message) js.Value {
 	return interop.NewPromise(func(resolve func(interface{}), reject func(error)) {
-		err := w.underlying.WriteMessages(w.ctx, msgs...)
+		err := w.underlying.WriteMessages(context.Background(), msgs...)
 
 		if err != nil {
 			reject(err)
@@ -89,7 +88,6 @@ var NewWriterJsFunc = js.FuncOf(func(this js.Value, args []js.Value) interface{}
 	return (&writer{
 		underlying: &kafkaWriter,
 		transport:  transport,
-		ctx:        context.Background(),
 	}).toJSObject()
 
 })

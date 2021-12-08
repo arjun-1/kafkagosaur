@@ -5,11 +5,11 @@ import { Writer } from "../../writer.ts";
 const kafkaGoSaur = new KafkaGoSaur();
 await delay(50);
 
-const kafkaBroker = "localhost:29092";
+const kafkaBroker = "localhost:9092";
 
 const writerConfig = {
   address: kafkaBroker,
-  topic: "my-topic",
+  topic: "test-0",
   idleTimeout: 10,
 };
 
