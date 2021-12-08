@@ -1,6 +1,6 @@
 export interface KafkaConn {
-  apiVersions: () => Promise<string[]>;
   close: () => Promise<void>;
+  apiVersions: () => Promise<string[]>;
 }
 
 export interface Dialer {

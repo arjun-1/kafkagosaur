@@ -31,4 +31,4 @@ const withWriter = async <T>(
   return result;
 };
 
-export { kafkaBroker, kafkaGoSaur, readerConfig, withWriter, writerConfig };
+export { kafkaBroker, kafkaGoSaur, readerConfig, writerConfig, withWriter };

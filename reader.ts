@@ -18,6 +18,10 @@ export type ReaderConfig = {
 };
 
 export interface Reader {
-  readMessage: () => Promise<MessageRead>;
   close: () => Promise<void>;
+  commitMessages: (msgs: MessageRead[]) => Promise<void>;
+  fetchMessage: () => Promise<MessageRead>;
+  readMessage: () => Promise<MessageRead>;
+  setOffset: (offset: number) => Promise<void>;
+  setOffsetAt: (timeMs: number) => Promise<void>
 }

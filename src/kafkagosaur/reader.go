@@ -129,7 +129,7 @@ func (r *reader) toJSObject() map[string]interface{} {
 		),
 		"setOffsetAt": js.FuncOf(
 			func(this js.Value, args []js.Value) interface{} {
-				time := time.UnixMicro(int64(args[0].Int()))
+				time := time.UnixMilli(int64(args[0].Int()))
 
 				return r.setOffsetAt(time)
 			},
