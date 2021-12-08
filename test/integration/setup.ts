@@ -5,17 +5,18 @@ import { Writer } from "../../writer.ts";
 const kafkaGoSaur = new KafkaGoSaur();
 await delay(50);
 
-const kafkaBroker = "localhost:9092";
+const broker = "localhost:9092";
+const topic = "test-0";
 
 const writerConfig = {
-  address: kafkaBroker,
-  topic: "test-0",
+  address: broker,
+  topic,
   idleTimeout: 10,
 };
 
 const readerConfig = {
-  brokers: [writerConfig.address],
-  topic: writerConfig.topic,
+  brokers: [broker],
+  topic,
   groupId: "group-id",
 };
 
@@ -31,4 +32,4 @@ const withWriter = async <T>(
   return result;
 };
 
-export { kafkaBroker, kafkaGoSaur, readerConfig, writerConfig, withWriter };
+export { broker, kafkaGoSaur, readerConfig, writerConfig, withWriter };
