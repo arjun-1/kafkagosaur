@@ -1,8 +1,13 @@
+import { Header } from "./header.ts";
+
 export type MessageWrite = {
   topic?: string;
-  time?: number;
+  offset?: number;
+  highWaterMark?: number;
   key?: Uint8Array;
-  value: Uint8Array;
+  value?: Uint8Array;
+  headers?: Header[];
+  time?: number;
 };
 
 export type WriterConfig = {

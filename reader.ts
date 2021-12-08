@@ -1,9 +1,14 @@
+import { Header } from "./header.ts";
+
 export type MessageRead = {
   topic: string;
   partition: number;
-  time: number;
+  offset: number;
+  highWaterMark: number;
   key: Uint8Array;
   value: Uint8Array;
+  headers: Header[];
+  time: number;
 };
 
 export type ReaderConfig = {

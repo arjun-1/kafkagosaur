@@ -14,10 +14,6 @@ func jsObjectToMessage(jsObject js.Value) kafka.Message {
 		message.Topic = topicJs.String()
 	}
 
-	if partitionJs := jsObject.Get("partition"); !partitionJs.IsUndefined() {
-		message.Partition = partitionJs.Int()
-	}
-
 	if offsetJs := jsObject.Get("offset"); !offsetJs.IsUndefined() {
 		message.Offset = int64(offsetJs.Int())
 	}

@@ -143,7 +143,11 @@ var NewReaderJsFunc = js.FuncOf(func(this js.Value, args []js.Value) interface{}
 
 	// TODO recover GET panic
 
-	kafkaReaderConfig := kafka.ReaderConfig{}
+	kafkaReaderConfig := kafka.ReaderConfig{
+		Dialer: &kafka.Dialer{
+			DialFunc: interop.NewDenoConn,
+		},
+	}
 
 	if brokers := readerConfigJs.Get("brokers"); !brokers.IsUndefined() {
 		kafkaReaderConfig.Brokers = interop.MapToString(interop.ToSlice(brokers))
