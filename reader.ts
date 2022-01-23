@@ -1,6 +1,7 @@
 import { Header } from "./header.ts";
+import { SASLConfig } from "./sasl.ts";
 
-export type MessageRead = {
+export type KafkaReadMessage = {
   topic: string;
   partition: number;
   offset: number;
@@ -11,17 +12,19 @@ export type MessageRead = {
   time: number;
 };
 
-export type ReaderConfig = {
+export type KafkaReaderConfig = {
   brokers: string[];
   topic: string;
   groupId: string;
+  sasl?: SASLConfig;
 };
 
-export interface Reader {
-  close: () => Promise<void>;
-  commitMessages: (msgs: MessageRead[]) => Promise<void>;
-  fetchMessage: () => Promise<MessageRead>;
-  readMessage: () => Promise<MessageRead>;
-  setOffset: (offset: number) => Promise<void>;
-  setOffsetAt: (timeMs: number) => Promise<void>
+export interface KafkaReader {
+  close: () => Promise<null>;
+  // TODO: is actually null!
+  commitMessages: (msgs: KafkaReadMessage[]) => Promise<void>;
+  fetchMessage: () => Promise<KafkaReadMessage>;
+  readMessage: () => Promise<KafkaReadMessage>;
+  setOffset: (offset: number) => Promise<null>;
+  setOffsetAt: (timeMs: number) => Promise<null>;
 }

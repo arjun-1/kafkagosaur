@@ -2,11 +2,12 @@ package kafkagosaur
 
 import (
 	"context"
-	"github.com/arjun-1/kafkagosaur/src/interop"
-	"github.com/segmentio/kafka-go"
 	"log"
 	"syscall/js"
 	"time"
+
+	"github.com/arjun-1/kafkagosaur/src/interop"
+	"github.com/segmentio/kafka-go"
 )
 
 type writer struct {
@@ -41,7 +42,6 @@ func (w *writer) toJSObject() map[string]interface{} {
 	return map[string]interface{}{
 		"writeMessages": js.FuncOf(
 			func(this js.Value, args []js.Value) interface{} {
-				// TODO: input validation
 
 				msgsJs := args[0]
 				msgs := make([]kafka.Message, msgsJs.Length())
@@ -62,14 +62,21 @@ func (w *writer) toJSObject() map[string]interface{} {
 }
 
 var NewWriterJsFunc = js.FuncOf(func(this js.Value, args []js.Value) interface{} {
-	// TODO: input validation
 	writerConfig := args[0]
 
 	transport := &kafka.Transport{
 		Dial: interop.NewDenoConn,
 	}
 
-	// TODO recover GET panic
+	saslMechanism, err := SASLMechanism(writerConfig)
+
+	if err != nil {
+		panic(err)
+	}
+
+	if saslMechanism != nil {
+		transport.SASL = saslMechanism
+	}
 
 	if jsIdleTimeout := writerConfig.Get("idleTimeout"); !jsIdleTimeout.IsUndefined() {
 		transport.IdleTimeout = time.Duration(jsIdleTimeout.Int()) * time.Millisecond

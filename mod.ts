@@ -2,9 +2,9 @@
 import "./lib/wasm_exec.js";
 import { deadline, DeadlineError, delay } from "./deps.ts";
 import { setOnGlobal as setConnectWithDeadlineOnGlobal } from "./connection-with-deadline.ts";
-import { Dialer } from "./dialer.ts";
-import { Reader, ReaderConfig } from "./reader.ts";
-import { Writer, WriterConfig } from "./writer.ts";
+import { KafkaDialer, KafkaDialerConfig } from "./dialer.ts";
+import { KafkaReader, KafkaReaderConfig } from "./reader.ts";
+import { KafkaWriter, KafkaWriterConfig } from "./writer.ts";
 
 const runGoWasm = async (wasmFilePath: string): Promise<unknown> => {
   const go = new global.Go();
@@ -45,25 +45,25 @@ class KafkaGoSaur {
     runGoWasm("./bin/kafkagosaur.wasm");
   }
 
-  async dialer(): Promise<Dialer> {
+  async dialer(config: KafkaDialerConfig): Promise<KafkaDialer> {
     const newDialer = await untilGloballyDefined(
       "newDialer",
-    ) as () => Dialer;
-    return newDialer();
+    ) as (config: KafkaDialerConfig) => KafkaDialer;
+    return newDialer(config);
   }
 
-  async reader(config: ReaderConfig): Promise<Reader> {
+  async reader(config: KafkaReaderConfig): Promise<KafkaReader> {
     const newReader = await untilGloballyDefined(
       "newReader",
-    ) as (config: ReaderConfig) => Reader;
+    ) as (config: KafkaReaderConfig) => KafkaReader;
 
     return newReader(config);
   }
 
-  async writer(config: WriterConfig): Promise<Writer> {
+  async writer(config: KafkaWriterConfig): Promise<KafkaWriter> {
     const newWriter = await untilGloballyDefined(
       "newWriter",
-    ) as (config: WriterConfig) => Writer;
+    ) as (config: KafkaWriterConfig) => KafkaWriter;
 
     return newWriter(config);
   }

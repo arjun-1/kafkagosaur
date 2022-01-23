@@ -1,6 +1,6 @@
 import { Header } from "./header.ts";
-
-export type MessageWrite = {
+import { SASLConfig } from "./sasl.ts";
+export type KafkaWriteMessage = {
   topic?: string;
   offset?: number;
   highWaterMark?: number;
@@ -10,13 +10,14 @@ export type MessageWrite = {
   time?: number;
 };
 
-export type WriterConfig = {
+export type KafkaWriterConfig = {
   topic?: string;
   address: string;
   idleTimeout?: number;
+  sasl?: SASLConfig;
 };
 
-export interface Writer {
-  writeMessages: (msgs: MessageWrite[]) => Promise<null>;
-  close: () => Promise<void>;
+export interface KafkaWriter {
+  writeMessages: (msgs: KafkaWriteMessage[]) => Promise<null>;
+  close: () => Promise<null>;
 }

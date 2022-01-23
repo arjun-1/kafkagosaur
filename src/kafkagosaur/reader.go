@@ -37,8 +37,6 @@ func (r *reader) commitMessages(msgs []kafka.Message) js.Value {
 	})
 }
 
-// func (r *reader) config(msgs []kafka.Message) js.Value {}
-
 func (r *reader) fetchMessage() js.Value {
 	return interop.NewPromise(func(resolve func(interface{}), reject func(error)) {
 		msg, err := r.underlying.FetchMessage(context.Background())
@@ -86,8 +84,6 @@ func (r *reader) setOffsetAt(t time.Time) js.Value {
 		resolve(nil)
 	})
 }
-
-// func (r *reader) Stats() js.Value {}
 
 func (r *reader) toJSObject() map[string]interface{} {
 	return map[string]interface{}{
@@ -138,15 +134,25 @@ func (r *reader) toJSObject() map[string]interface{} {
 }
 
 var NewReaderJsFunc = js.FuncOf(func(this js.Value, args []js.Value) interface{} {
-	// TODO: input validation
+
 	readerConfigJs := args[0]
 
-	// TODO recover GET panic
+	kafkaDialer := &kafka.Dialer{
+		DialFunc: interop.NewDenoConn,
+	}
+
+	saslMechanism, err := SASLMechanism(readerConfigJs)
+
+	if err != nil {
+		panic(err)
+	}
+
+	if saslMechanism != nil {
+		kafkaDialer.SASLMechanism = saslMechanism
+	}
 
 	kafkaReaderConfig := kafka.ReaderConfig{
-		Dialer: &kafka.Dialer{
-			DialFunc: interop.NewDenoConn,
-		},
+		Dialer: kafkaDialer,
 	}
 
 	if brokers := readerConfigJs.Get("brokers"); !brokers.IsUndefined() {

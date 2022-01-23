@@ -1,5 +1,3 @@
-github.com/arjun-1/kafka-go v0.4.26-0.20211203194130-a375a40e5b09 h1:L+Zy955T16OZaWYOXB93wWf/77M82DIXUfeFIzSgiaA=
-github.com/arjun-1/kafka-go v0.4.26-0.20211203194130-a375a40e5b09/go.mod h1:XzMcoMjSzDGHcIwpWUI7GB43iKZ2fTVmryPSGLf/MPg=
 github.com/davecgh/go-spew v1.1.0 h1:ZDRjVQ15GmhC3fiQ8ni8+OwkZQO4DARzQgrnXU1Liz8=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/eapache/go-xerial-snappy v0.0.0-20180814174437-776d5712da21 h1:YEetp8/yCZMuEPMUDHG0CW/brkkEp8mzqk2+ODEitlw=
