@@ -4,10 +4,10 @@ import { SASLMechanism } from "https://raw.githubusercontent.com/arjun-1/kafkago
 const broker = "localhost:9093";
 const topic = "test-0";
 
-const writerConfig = {
-  address: broker,
+const config = {
+  brokers: [broker],
   topic,
-  idleTimeout: 10,
+  groupId: "group-id",
   sasl: {
     mechanism: SASLMechanism.SCRAMSHA512,
     username: "adminscram",
@@ -16,10 +16,11 @@ const writerConfig = {
 };
 
 const kafkaGoSaur = new KafkaGoSaur();
-const writer = await kafkaGoSaur.writer(writerConfig);
+const reader = await kafkaGoSaur.reader(config);
 
-const enc = new TextEncoder();
-const msgs = [{ value: enc.encode("value0") }, { value: enc.encode("value1") }];
+const dec = new TextDecoder();
+const readMsg = await reader.readMessage();
+const readValue = dec.decode(readMsg.value);
+console.log(readValue);
 
-await writer.writeMessages(msgs);
-await writer.close();
+await reader.close();
