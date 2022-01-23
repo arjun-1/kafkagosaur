@@ -75,6 +75,13 @@ To run the reader example
 deno run --allow-read --allow-net examples/reader.ts
 ```
 
+## Documentation
+
+While the documentation is a work in progress, please see the
+[documentation](https://github.com/segmentio/kafka-go/blob/main/README.md) of
+the kafka-go project on how to use kafkagosaur. Kafkagosaur tries to follow the
+API of kafka-go closely.
+
 ## Development
 
 To build the WebAssemnbly module, first run
