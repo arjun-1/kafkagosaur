@@ -14,6 +14,8 @@ performance characteristics similar to the native code.
 - [x] Reader
 - [x] SASL
 - [ ] TLS
+- [x] TCP
+- [ ] UDP
 - [ ] Deno streams
 
 ## Examples

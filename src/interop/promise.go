@@ -60,9 +60,7 @@ func AwaitWithErrorMapping(promiseLike js.Value, errorFn func(js.Value) error) (
 
 	select {
 	case v := <-value:
-		{
-			return v, nil
-		}
+		return v, nil
 	case r := <-reason:
 		return js.Undefined(), errorFn(r)
 	}

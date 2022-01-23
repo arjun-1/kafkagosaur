@@ -137,19 +137,7 @@ var NewReaderJsFunc = js.FuncOf(func(this js.Value, args []js.Value) interface{}
 
 	readerConfigJs := args[0]
 
-	kafkaDialer := &kafka.Dialer{
-		DialFunc: interop.NewDenoConn,
-	}
-
-	saslMechanism, err := SASLMechanism(readerConfigJs)
-
-	if err != nil {
-		panic(err)
-	}
-
-	if saslMechanism != nil {
-		kafkaDialer.SASLMechanism = saslMechanism
-	}
+	kafkaDialer := NewKafkaDialer(readerConfigJs)
 
 	kafkaReaderConfig := kafka.ReaderConfig{
 		Dialer: kafkaDialer,

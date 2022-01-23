@@ -41,8 +41,7 @@ func (d *dialer) toJSObject() map[string]interface{} {
 	}
 }
 
-var NewDialerJsFunc = js.FuncOf(func(this js.Value, args []js.Value) interface{} {
-	dialConfigJs := args[0]
+func NewKafkaDialer(dialConfigJs js.Value) *kafka.Dialer {
 
 	kafkaDialer := &kafka.Dialer{
 		DialFunc: interop.NewDenoConn,
@@ -57,6 +56,14 @@ var NewDialerJsFunc = js.FuncOf(func(this js.Value, args []js.Value) interface{}
 	if saslMechanism != nil {
 		kafkaDialer.SASLMechanism = saslMechanism
 	}
+
+	return kafkaDialer
+}
+
+var NewDialerJsFunc = js.FuncOf(func(this js.Value, args []js.Value) interface{} {
+	dialConfigJs := args[0]
+
+	kafkaDialer := NewKafkaDialer(dialConfigJs)
 
 	return (&dialer{
 		underlying: kafkaDialer,
