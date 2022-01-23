@@ -1,8 +1,10 @@
 # kafkagosaur
 
-Kafkagosaur is a Kafka client for Deno built using WebAssembly.
-The project binds to the [kafka-go](https://github.com/segmentio/kafka-go) library.
-It is cross compiled into a WebAssembly module, and run natively in Deno
+Kafkagosaur is a Kafka client for Deno built using WebAssembly. The project
+binds to the [kafka-go](https://github.com/segmentio/kafka-go) library.
+
+Being cross-compiled from Go into a WebAssembly module, it should enjoy
+performance characteristics similar to the native code.
 
 ## Supported features
 
@@ -14,7 +16,46 @@ It is cross compiled into a WebAssembly module, and run natively in Deno
 
 ## Examples
 
-To run the examples, ensure you have docker up and running
+For comprehensive examples on how to use kafkagosaur, head over to the
+[provided examples](#provided-examples).
+
+#### KafkaWriter
+
+To write a message, make use of the `KafkaWriter` object on the `KafkaGoSaur`
+instance:
+
+```typescript
+const kafkaGoSaur = new KafkaGoSaur();
+const writer = await kafkaGoSaur.writer({
+  broker: "localhost:9092",
+  topic: "test-0",
+});
+
+const enc = new TextEncoder();
+const msgs = [{ value: enc.encode("value") }];
+
+await writer.writeMessages(msgs);
+```
+
+#### KafkaReader
+
+To read a message, make use of the `KafkaReader` object on the `KafkaGoSaur`
+instance:
+
+```typescript
+const kafkaGoSaur = new KafkaGoSaur();
+const reader = await kafkaGoSaur.reader({
+  brokers: ["localhost:9092"],
+  topic: "test-0",
+});
+
+const readMsg = await reader.readMessage();
+```
+
+### Provided examples
+
+To run the [provided examples](examples), ensure you have docker up and running.
+Then start the kafka broker using
 
 ```bash
 make docker
@@ -40,7 +81,8 @@ To build the WebAssemnbly module, first run
 make build
 ```
 
-To run the tests, ensure first you have docker up and running
+To run the tests, ensure first you have docker up and running. Then start the
+kafka broker using
 
 ```bash
 make docker
@@ -51,3 +93,13 @@ Then run
 ```bash
 make test
 ```
+
+## Performance benchmarks
+
+TODO
+
+## Contributing
+
+Kafkgagosaur is in early stage of development. Nevertheless your contributions
+are highly valued and welcomed! Feel free to ask for new features, report bugs,
+or submit your code.
