@@ -1,5 +1,5 @@
-import KafkaGoSaur from "https://raw.githubusercontent.com/arjun-1/kafkagosaur/master/mod.ts";
-import { SASLMechanism } from "https://raw.githubusercontent.com/arjun-1/kafkagosaur/master/sasl.ts";
+import KafkaGoSaur from "https://deno.land/kafkagosaur@0.0.1/mod.ts";
+import { SASLMechanism } from "https://deno.land/kafkagosaur@0.0.1/sasl.ts";
 
 const broker = "localhost:9093";
 const topic = "test-0";
