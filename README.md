@@ -98,7 +98,7 @@ To run the tests, ensure first you have docker up and running. Then start the
 kafka broker using
 
 ```bash
-make docker
+make docker-up
 ```
 
 Then run
