@@ -16,31 +16,31 @@ const saslConfig = {
   password: "admin-secret-512",
 };
 
-const writerConfigNoSASL = {
+const writerConfig = {
   address: broker,
   topic,
   idleTimeout: 10,
 };
 
 const writerConfigSASL = {
-  ...writerConfigNoSASL,
+  ...writerConfig,
   address: brokerSASL,
   sasl: saslConfig,
 };
 
-const readerConfigNoSASL = {
+const readerConfig = {
   brokers: [broker],
   topic,
   groupId: "group-id",
 };
 
 const readerConfigSASL = {
-  ...readerConfigNoSASL,
+  ...readerConfig,
   brokers: [brokerSASL],
   sasl: saslConfig,
 };
 
-const withWriter = (config: KafkaWriterConfig = writerConfigNoSASL) =>
+const withWriter = (config: KafkaWriterConfig = writerConfig) =>
   async <T>(
     resultFn: (writer: KafkaWriter) => Promise<T>,
   ): Promise<T> => {
@@ -49,7 +49,7 @@ const withWriter = (config: KafkaWriterConfig = writerConfigNoSASL) =>
     const result = await resultFn(writer);
     await writer.close();
 
-    if (config.idleTimeout) await delay(2 * config.idleTimeout);
+    if (config.idleTimeout) await delay(3 * config.idleTimeout);
     return result;
   };
 
@@ -59,11 +59,11 @@ export {
   broker,
   brokerSASL,
   kafkaGoSaur,
-  readerConfigNoSASL,
+  readerConfig,
   readerConfigSASL,
   saslConfig,
   withWriter,
   withWriterSASL,
-  writerConfigNoSASL,
+  writerConfig,
   writerConfigSASL,
 };

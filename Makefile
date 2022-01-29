@@ -3,17 +3,23 @@
 all: build
 
 build:
-	cd src; GOOS=js GOARCH=wasm go build -o ../bin/kafkagosaur.wasm
+	docker build -o bin .
 
 test:
-	deno test --allow-read --allow-net
+	deno test --allow-read --allow-net --coverage=coverage
 
-docker:
-	docker-compose up
+docker-up:
+	docker-compose up -d
 
-docker-clean:
+docker-down:
 	docker-compose down
 
 lint:
 	deno fmt
+	deno lint --ignore=lib/wasm_exec.js
 	gofmt -w .
+
+lint-ci:
+	test -z $$(gofmt -l .) && \
+	deno fmt --check --quiet && \
+	deno lint --ignore=lib/wasm_exec.js --quiet

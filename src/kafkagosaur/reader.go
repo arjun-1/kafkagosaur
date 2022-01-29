@@ -163,8 +163,8 @@ var NewReaderJsFunc = js.FuncOf(func(this js.Value, args []js.Value) interface{}
 		kafkaReaderConfig.MinBytes = minBytes.Int()
 	}
 
-	if maxBytes := readerConfigJs.Get("maxByes"); !maxBytes.IsUndefined() {
-		kafkaReaderConfig.MinBytes = maxBytes.Int()
+	if maxBytes := readerConfigJs.Get("maxBytes"); !maxBytes.IsUndefined() {
+		kafkaReaderConfig.MaxBytes = maxBytes.Int()
 	}
 
 	kafkaReader := kafka.NewReader(kafkaReaderConfig)

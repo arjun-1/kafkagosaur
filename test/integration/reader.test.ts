@@ -1,10 +1,10 @@
 import { assertEquals } from "../deps.ts";
 import {
   kafkaGoSaur,
-  readerConfigNoSASL,
+  readerConfig as readerConfigNoSASL,
   readerConfigSASL,
   withWriter,
-  writerConfigNoSASL,
+  writerConfig as writerConfigNoSASL,
   writerConfigSASL,
 } from "./setup.ts";
 import { KafkaReader, KafkaReaderConfig } from "../../reader.ts";
