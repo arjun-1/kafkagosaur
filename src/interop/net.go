@@ -12,8 +12,6 @@ import (
 	"time"
 )
 
-type DialFunc func(ctx context.Context, network string, address string) (net.Conn, error)
-
 type denoNetAddr struct {
 	jsAddr js.Value
 }
@@ -37,7 +35,6 @@ func mapDeadlineError(reason js.Value) error {
 
 type denoTCPConn struct {
 	jsConn    js.Value
-	ctx       context.Context
 	closeOnce sync.Once
 }
 
@@ -146,7 +143,6 @@ func NewDenoConn(ctx context.Context, network string, address string) (net.Conn,
 
 	denoConn := &denoTCPConn{
 		jsConn: jsTCPConn,
-		ctx:    ctx,
 	}
 
 	return denoConn, nil

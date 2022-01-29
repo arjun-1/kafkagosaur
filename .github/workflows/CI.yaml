@@ -1,0 +1,46 @@
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+jobs:
+  CI:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Setup repo
+        uses: actions/checkout@v2
+
+      - name: Setup Deno
+        uses: denoland/setup-deno@v1
+        with:
+          deno-version: "~1.18"
+
+      - name: Setup Go
+        uses: actions/setup-go@v2.1.5
+        with:
+          go-version: "~1.17"
+
+      - name: Run linter and formatter
+        run: make lint-ci
+        
+      - name: Build the WebAssembly binary
+        run: |
+          make build
+          git diff --quiet --exit-code bin/kafkagosaur.wasm
+
+      - name: Start Docker containers
+        run: make docker-up && sleep 5
+
+      - name: Run tests
+        run: make test
+
+      - name: Write coverage report
+        run: deno coverage ./coverage --lcov > ./coverage/coverage.lcov
+
+      - uses: codecov/codecov-action@v2
+        with:
+          files: ./coverage/coverage.lcov
