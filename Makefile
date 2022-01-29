@@ -20,6 +20,6 @@ lint:
 	gofmt -w .
 
 lint-ci:
-	test -z $$(gofmt -l .) && \
-	deno fmt --check --quiet && \
+	test -z $$(gofmt -l .)
+	deno fmt --check --quiet
 	deno lint --ignore=lib/wasm_exec.js --quiet

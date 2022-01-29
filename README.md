@@ -1,6 +1,7 @@
 # kafkagosaur
 
 [![Custom badge](https://img.shields.io/endpoint?url=https%3A%2F%2Fdeno-visualizer.danopia.net%2Fshields%2Flatest-version%2Fx%2Fkafkagosaur%2Fmod.ts)](https://deno.land/x/kafkagosaur)
+[![codecov](https://codecov.io/gh/arjun-1/kafkagosaur/branch/master/graph/badge.svg)](https://codecov.io/gh/arjun-1/kafkagosaur)
 
 Kafkagosaur is a Kafka client for Deno built using WebAssembly. The project
 binds to the [kafka-go](https://github.com/segmentio/kafka-go) library.
