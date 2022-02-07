@@ -1,11 +1,43 @@
 // @deno-types="./global.d.ts"
 import "./lib/wasm_exec.js";
 import { deadline, DeadlineError, delay } from "./deps.ts";
-import { Dial, setDialOnGlobal } from "./net/connection.ts";
+import { DialBackend, setDialOnGlobal } from "./net/connection.ts";
 import { dial as nodeDial } from "./net/node-connection.ts";
+import { dial as denoDial } from "./net/deno-connection.ts";
 import { KafkaDialer, KafkaDialerConfig } from "./dialer.ts";
 import { KafkaReader, KafkaReaderConfig } from "./reader.ts";
 import { KafkaWriter, KafkaWriterConfig } from "./writer.ts";
+
+/**
+ * A Kafka client for Deno built using WebAssembly.
+ *
+ * ### Example reader
+ *
+ * ```typescript
+ * const kafkaGoSaur = new KafkaGoSaur();
+ * const reader = await kafkaGoSaur.reader({
+ *  brokers: ["localhost:9092"],
+ *  topic: "test-0",
+ * });
+ *
+ * const readMsg = await reader.readMessage();
+ * ```
+ *
+ * ### Example writer
+ *
+ * ```typescript
+ * const kafkaGoSaur = new KafkaGoSaur();
+ * const writer = await kafkaGoSaur.writer({
+ *  broker: "localhost:9092",
+ *  topic: "test-0",
+ * });
+ *
+ * const enc = new TextEncoder();
+ * const msgs = [{ value: enc.encode("value") }];
+ *
+ * await writer.writeMessages(msgs);
+ * ```
+ */
 
 const runGoWasm = async (wasmFilePath: string): Promise<void> => {
   const go = new global.Go();
@@ -41,8 +73,15 @@ const untilGloballyDefined = (
 };
 
 class KafkaGoSaur {
-  constructor(dial: Dial = nodeDial) {
-    setDialOnGlobal(dial);
+  constructor(dialBackend: DialBackend = DialBackend.Node) {
+    switch (dialBackend) {
+      case DialBackend.Node:
+        setDialOnGlobal(nodeDial);
+        break;
+      case DialBackend.Deno:
+        setDialOnGlobal(denoDial);
+        break;
+    }
     runGoWasm("./bin/kafkagosaur.wasm");
   }
 

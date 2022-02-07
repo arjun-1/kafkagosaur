@@ -3,7 +3,7 @@ import { SASLMechanism } from "../security/sasl.ts";
 import { bench, runBenchmarks } from "./deps.ts";
 import { broker, password, topic, username } from "./config.ts";
 
-const nrOfMessages = 100000;
+const nrOfMessages = 10000;
 
 const readerConfig = {
   brokers: [broker],

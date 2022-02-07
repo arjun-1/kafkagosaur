@@ -1,14 +1,12 @@
 # kafkagosaur
 
 [![deno module](https://shield.deno.dev/x/kafkagosaur)](https://deno.land/x/kafkagosaur)
+[![deno doc](https://doc.deno.land/badge.svg)](https://doc.deno.land/https/deno.land/x/kafkagosaur/mod.ts)
 [![CI](https://github.com/arjun-1/kafkagosaur/actions/workflows/CI.yaml/badge.svg)](https://github.com/arjun-1/kafkagosaur/actions/workflows/CI.yaml)
 [![codecov](https://codecov.io/gh/arjun-1/kafkagosaur/branch/master/graph/badge.svg)](https://codecov.io/gh/arjun-1/kafkagosaur)
 
 Kafkagosaur is a Kafka client for Deno built using WebAssembly. The project
 binds to the [kafka-go](https://github.com/segmentio/kafka-go) library.
-
-Being cross-compiled from Go into a WebAssembly module, it should enjoy
-performance characteristics similar to the native code.
 
 ## Supported features
 
@@ -88,7 +86,7 @@ API of kafka-go closely.
 
 ## Development
 
-To build the WebAssemnbly module, first run
+To build the WebAssembly module, first run
 
 ```bash
 make build-wasm
@@ -108,10 +106,13 @@ make test
 ```
 
 ## Performance benchmarks
+
 The Deno benchmarks are located in [bench](bench) and can be run via
+
 ```bash
 deno run --allow-read --allow-net --allow-env --unstable bench/reader.ts
 ```
+
 ```bash
 deno run --allow-read --allow-net --allow-env --unstable bench/writer.ts
 ```
@@ -120,18 +121,22 @@ deno run --allow-read --allow-net --allow-env --unstable bench/writer.ts
 
 <img width="423" alt="bench" src="https://user-images.githubusercontent.com/8102654/152859490-81464138-56ff-43d2-92db-7727458a561b.png">
 
-|                   | kafkagosaur | kafka-go[^2]
-|-------------------|-------------|--------------
-| writeMessages[^1] | 3977 ± 244  | 4678 ± 207 
-| readMessage       | 1963 ± 190  | 2784 ± 374
+|                   | kafkagosaur[^3] | kafka-go[^2] |
+| ----------------- | --------------- | ------------ |
+| writeMessages[^1] | 3977 ± 244      | 4678 ± 207   |
+| readMessage       | 1963 ± 190      | 2784 ± 374   |
 
-[^1]: When batching 10.000 messages.
-[^2]: When using a single goroutine.
+[^1]: Batching 10.000 messages.
+
+[^2]: Using a single goroutine.
+
+[^3]: Using the `DialBackend.Node`.
 
 #### Environment
-- 2,6 GHz 6-Core Intel Core i7
-- [Confluent Cloud Basic cluster](https://docs.confluent.io/cloud/current/clusters/cluster-types.html#basic-clusters); 6 partitions
 
+- 2,6 GHz 6-Core Intel Core i7
+- [Confluent Cloud Basic cluster](https://docs.confluent.io/cloud/current/clusters/cluster-types.html#basic-clusters);
+  6 partitions
 
 ## Contributing
 
