@@ -151,6 +151,10 @@ var NewReaderJsFunc = js.FuncOf(func(this js.Value, args []js.Value) interface{}
 		kafkaReaderConfig.GroupID = groupId.String()
 	}
 
+	if partition := readerConfigJs.Get("partition"); !partition.IsUndefined() {
+		kafkaReaderConfig.Partition = partition.Int()
+	}
+
 	if topic := readerConfigJs.Get("topic"); !topic.IsUndefined() {
 		kafkaReaderConfig.Topic = topic.String()
 	}
