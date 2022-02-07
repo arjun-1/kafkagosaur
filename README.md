@@ -108,8 +108,30 @@ make test
 ```
 
 ## Performance benchmarks
+The Deno benchmarks are located in [bench](bench) and can be run via
+```bash
+deno run --allow-read --allow-net --allow-env --unstable bench/reader.ts
+```
+```bash
+deno run --allow-read --allow-net --allow-env --unstable bench/writer.ts
+```
 
-TODO
+### Results
+
+<img width="423" alt="bench" src="https://user-images.githubusercontent.com/8102654/152859490-81464138-56ff-43d2-92db-7727458a561b.png">
+
+|                   | kafkagosaur | kafka-go[^2]
+|-------------------|-------------|--------------
+| writeMessages[^1] | 3977 ± 244  | 4678 ± 207 
+| readMessage       | 1963 ± 190  | 2784 ± 374
+
+[^1]: When batching 10.000 messages.
+[^2]: When using a single goroutine.
+
+#### Environment
+- 2,6 GHz 6-Core Intel Core i7
+- [Confluent Cloud Basic cluster](https://docs.confluent.io/cloud/current/clusters/cluster-types.html#basic-clusters); 6 partitions
+
 
 ## Contributing
 
