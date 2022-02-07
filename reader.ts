@@ -1,5 +1,6 @@
 import { Header } from "./header.ts";
-import { SASLConfig } from "./sasl.ts";
+import { SASLConfig } from "./security/sasl.ts";
+import { TLSConfig } from "./security/tls.ts";
 
 export type KafkaReadMessage = {
   topic: string;
@@ -15,16 +16,16 @@ export type KafkaReadMessage = {
 export type KafkaReaderConfig = {
   brokers: string[];
   topic: string;
-  groupId: string;
+  groupId?: string;
   sasl?: SASLConfig;
+  tls?: TLSConfig;
 };
 
 export interface KafkaReader {
-  close: () => Promise<null>;
-  // TODO: is actually null!
+  close: () => Promise<void>;
   commitMessages: (msgs: KafkaReadMessage[]) => Promise<void>;
   fetchMessage: () => Promise<KafkaReadMessage>;
   readMessage: () => Promise<KafkaReadMessage>;
-  setOffset: (offset: number) => Promise<null>;
-  setOffsetAt: (timeMs: number) => Promise<null>;
+  setOffset: (offset: number) => Promise<void>;
+  setOffsetAt: (timeMs: number) => Promise<void>;
 }

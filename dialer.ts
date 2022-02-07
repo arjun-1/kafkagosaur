@@ -1,7 +1,9 @@
-import { SASLConfig } from "./sasl.ts";
+import { SASLConfig } from "./security/sasl.ts";
+import { TLSConfig } from "./security/tls.ts";
 
 export type KafkaDialerConfig = {
   sasl?: SASLConfig;
+  tls?: TLSConfig;
 };
 
 export interface KafkaConn {

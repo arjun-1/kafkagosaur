@@ -1,9 +1,10 @@
 import { delay } from "../../deps.ts";
 import KafkaGoSaur from "../../mod.ts";
 import { KafkaWriter, KafkaWriterConfig } from "../../writer.ts";
-import { SASLMechanism } from "../../sasl.ts";
+import { SASLMechanism } from "../../security/sasl.ts";
 
 const kafkaGoSaur = new KafkaGoSaur();
+// Ensure promise to instantiate wasm is awaited, so no async ops are leaked.
 await delay(50);
 
 const broker = "localhost:9092";

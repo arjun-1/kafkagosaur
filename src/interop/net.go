@@ -12,21 +12,20 @@ import (
 	"time"
 )
 
-type denoNetAddr struct {
+type denoAddr struct {
 	jsAddr js.Value
 }
 
-func (c *denoNetAddr) Network() string {
-	return c.jsAddr.Get("transport").String()
+func (c *denoAddr) Network() string {
+	return c.jsAddr.Get("network").String()
 }
 
-func (c *denoNetAddr) String() string {
-	// TODO: handle unix addr case
-	return net.JoinHostPort(c.jsAddr.Get("hostname").String(), c.jsAddr.Get("port").String())
+func (c *denoAddr) String() string {
+	return c.jsAddr.Get("string").String()
 }
 
 func mapDeadlineError(reason js.Value) error {
-	if reason.Get("name").String() == "DeadlineError" {
+	if reason := reason.Get("name"); !reason.IsUndefined() && reason.String() == "DeadlineError" {
 		return os.ErrDeadlineExceeded
 	}
 
@@ -71,7 +70,7 @@ func (c *denoTCPConn) Write(b []byte) (n int, err error) {
 func (c *denoTCPConn) LocalAddr() net.Addr {
 	jsAddr := c.jsConn.Get("localAddr")
 
-	return &denoNetAddr{
+	return &denoAddr{
 		jsAddr: jsAddr,
 	}
 }
@@ -79,7 +78,7 @@ func (c *denoTCPConn) LocalAddr() net.Addr {
 func (c *denoTCPConn) RemoteAddr() net.Addr {
 	jsAddr := c.jsConn.Get("remoteAddr")
 
-	return &denoNetAddr{
+	return &denoAddr{
 		jsAddr: jsAddr,
 	}
 }
@@ -106,8 +105,7 @@ func (c *denoTCPConn) SetWriteDeadline(t time.Time) error {
 
 func (c *denoTCPConn) Close() error {
 	c.closeOnce.Do(func() {
-		c.jsConn.Call("close")
-		Await(c.jsConn.Call("closeWrite"))
+		Await(c.jsConn.Call("close"))
 	})
 
 	return nil
@@ -129,13 +127,7 @@ func NewDenoConn(ctx context.Context, network string, address string) (net.Conn,
 		return nil, err
 	}
 
-	connectOptions := map[string]interface{}{
-		"transport": network,
-		"hostname":  host,
-		"port":      portInt,
-	}
-
-	jsTCPConn, err := Await(js.Global().Call("connectWithDeadline", connectOptions))
+	jsTCPConn, err := Await(js.Global().Call("dial", host, portInt))
 
 	if err != nil {
 		return nil, err

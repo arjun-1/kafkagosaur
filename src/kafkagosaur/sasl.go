@@ -10,35 +10,32 @@ import (
 )
 
 func SASLMechanism(config js.Value) (sasl.Mechanism, error) {
-	var mechanism sasl.Mechanism = nil
-	var err error = nil
-
 	if saslConfig := config.Get("sasl"); !saslConfig.IsUndefined() {
 		username := saslConfig.Get("username").String()
 		password := saslConfig.Get("password").String()
 
 		switch saslConfig.Get("mechanism").String() {
 		case "PLAIN":
-			mechanism = plain.Mechanism{
+			return plain.Mechanism{
 				Username: username,
 				Password: password,
-			}
+			}, nil
 		case "SCRAM-SHA-512":
-			mechanism, err = scram.Mechanism(
+			return scram.Mechanism(
 				scram.SHA512,
 				username,
 				password,
 			)
 		case "SCRAM-SHA-256":
-			mechanism, err = scram.Mechanism(
+			return scram.Mechanism(
 				scram.SHA256,
 				username,
 				password,
 			)
 		default:
-			err = errors.New("unknown SASL mechanism")
+			return nil, errors.New("unknown SASL mechanism")
 		}
 	}
 
-	return mechanism, err
+	return nil, nil
 }

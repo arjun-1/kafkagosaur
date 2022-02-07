@@ -1,12 +1,13 @@
 // @deno-types="./global.d.ts"
 import "./lib/wasm_exec.js";
 import { deadline, DeadlineError, delay } from "./deps.ts";
-import { setOnGlobal as setConnectWithDeadlineOnGlobal } from "./connection-with-deadline.ts";
+import { Dial, setDialOnGlobal } from "./net/connection.ts";
+import { dial as nodeDial } from "./net/node-connection.ts";
 import { KafkaDialer, KafkaDialerConfig } from "./dialer.ts";
 import { KafkaReader, KafkaReaderConfig } from "./reader.ts";
 import { KafkaWriter, KafkaWriterConfig } from "./writer.ts";
 
-const runGoWasm = async (wasmFilePath: string): Promise<unknown> => {
+const runGoWasm = async (wasmFilePath: string): Promise<void> => {
   const go = new global.Go();
   const wasmBytes = await Deno.readFile(wasmFilePath);
   const instiatedSource = await WebAssembly.instantiate(
@@ -24,7 +25,7 @@ const untilGloballyDefined = (
   const maxDelayMs = 1000;
 
   const loop = async (): Promise<unknown> => {
-    const value = (global as Record<string, unknown>)[key];
+    const value = (globalThis as Record<string, unknown>)[key];
     if (value !== undefined) return Promise.resolve(value);
     else {
       await delay(backoffMs);
@@ -40,8 +41,8 @@ const untilGloballyDefined = (
 };
 
 class KafkaGoSaur {
-  constructor() {
-    setConnectWithDeadlineOnGlobal();
+  constructor(dial: Dial = nodeDial) {
+    setDialOnGlobal(dial);
     runGoWasm("./bin/kafkagosaur.wasm");
   }
 

@@ -7,12 +7,16 @@ import (
 	"syscall/js"
 )
 
-func NewPromise(executor func(resolve func(interface{}), reject func(error))) js.Value {
+func NewPromise(executor func(_ func(interface{}), _ func(error))) js.Value {
 
 	executorJsFunc := js.FuncOf(func(this js.Value, args []js.Value) interface{} {
 
 		resolve := func(value interface{}) { args[0].Invoke(value) }
-		reject := func(reason error) { args[1].Invoke(reason.Error()) }
+		reject := func(reason error) {
+			err := js.Global().Call("Error", reason.Error())
+
+			args[1].Invoke(err)
+		}
 
 		go executor(resolve, reject)
 		defer func() {
@@ -30,7 +34,14 @@ func NewPromise(executor func(resolve func(interface{}), reject func(error))) js
 }
 
 func defaultError(reason js.Value) error {
-	return errors.New(js.Global().Get("JSON").Call("stringify", reason).String())
+	var text string
+	if stack := reason.Get("stack"); !stack.IsUndefined() {
+		text = stack.String()
+	} else {
+		text = js.Global().Get("JSON").Call("stringify", reason).String()
+	}
+
+	return errors.New(text)
 }
 
 func Await(promiseLike js.Value) (js.Value, error) {
@@ -38,20 +49,20 @@ func Await(promiseLike js.Value) (js.Value, error) {
 }
 
 func AwaitWithErrorMapping(promiseLike js.Value, errorFn func(js.Value) error) (js.Value, error) {
-	value := make(chan js.Value)
-	defer close(value)
+	fullfilledChannel := make(chan js.Value)
+	defer close(fullfilledChannel)
 
-	reason := make(chan js.Value)
-	defer close(reason)
+	rejectedChannel := make(chan js.Value)
+	defer close(rejectedChannel)
 
 	onFulfilled := js.FuncOf(func(this js.Value, args []js.Value) interface{} {
-		value <- args[0]
+		fullfilledChannel <- args[0]
 		return nil
 	})
 	defer onFulfilled.Release()
 
 	onRejected := js.FuncOf(func(this js.Value, args []js.Value) interface{} {
-		reason <- args[0]
+		rejectedChannel <- args[0]
 		return nil
 	})
 	defer onRejected.Release()
@@ -59,9 +70,9 @@ func AwaitWithErrorMapping(promiseLike js.Value, errorFn func(js.Value) error) (
 	promiseLike.Call("then", onFulfilled, onRejected)
 
 	select {
-	case v := <-value:
+	case v := <-fullfilledChannel:
 		return v, nil
-	case r := <-reason:
+	case r := <-rejectedChannel:
 		return js.Undefined(), errorFn(r)
 	}
 
