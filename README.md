@@ -14,8 +14,6 @@ binds to the [kafka-go](https://github.com/segmentio/kafka-go) library.
 - [x] Reader
 - [x] SASL
 - [x] TLS
-- [x] TCP
-- [ ] UDP
 - [ ] Deno streams
 
 ## Examples
