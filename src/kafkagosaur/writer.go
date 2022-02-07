@@ -2,7 +2,6 @@ package kafkagosaur
 
 import (
 	"context"
-	"log"
 	"syscall/js"
 	"time"
 
@@ -64,18 +63,20 @@ func (w *writer) toJSObject() map[string]interface{} {
 var NewWriterJsFunc = js.FuncOf(func(this js.Value, args []js.Value) interface{} {
 	writerConfig := args[0]
 
-	transport := &kafka.Transport{
-		Dial: interop.NewDenoConn,
-	}
-
 	saslMechanism, err := SASLMechanism(writerConfig)
-
 	if err != nil {
 		panic(err)
 	}
 
-	if saslMechanism != nil {
-		transport.SASL = saslMechanism
+	tls, err := TLSConfig(writerConfig)
+	if err != nil {
+		panic(err)
+	}
+
+	transport := &kafka.Transport{
+		Dial: interop.NewDenoConn,
+		SASL: saslMechanism,
+		TLS:  tls,
 	}
 
 	if jsIdleTimeout := writerConfig.Get("idleTimeout"); !jsIdleTimeout.IsUndefined() {
@@ -83,8 +84,8 @@ var NewWriterJsFunc = js.FuncOf(func(this js.Value, args []js.Value) interface{}
 	}
 
 	kafkaWriter := kafka.Writer{
-		Addr:      kafka.TCP(writerConfig.Get("address").String()),
-		Logger:    log.Default(),
+		Addr: kafka.TCP(writerConfig.Get("address").String()),
+		// Logger:    log.Default(),
 		Transport: transport,
 	}
 

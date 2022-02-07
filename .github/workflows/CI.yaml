@@ -20,7 +20,7 @@ jobs:
           deno-version: "~1.18"
 
       - name: Setup Go
-        uses: actions/setup-go@v2.1.5
+        uses: actions/setup-go@v2
         with:
           go-version: "~1.17"
 
@@ -29,7 +29,7 @@ jobs:
         
       - name: Build the WebAssembly binary
         run: |
-          make build
+          make build-wasm
           git diff --quiet --exit-code bin/kafkagosaur.wasm
 
       - name: Start Docker containers
@@ -41,7 +41,7 @@ jobs:
       - name: Write coverage report
         run: deno coverage ./coverage --lcov > ./coverage/coverage.lcov
 
-      - name: Upload coverage to Codecov
+      - name: Upload coverage report
         uses: codecov/codecov-action@v2
         with:
           files: ./coverage/coverage.lcov

@@ -1,12 +1,12 @@
 .PHONY: test
 
-all: build
+all: build-wasm
 
-build:
-	docker build -o bin .
+build-wasm:
+	DOCKER_BUILDKIT=1 docker build -o bin .
 
 test:
-	deno test --allow-read --allow-net --coverage=coverage
+	deno test --allow-read --allow-net --unstable --coverage=coverage
 
 docker-up:
 	docker-compose up -d

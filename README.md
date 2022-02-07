@@ -15,7 +15,7 @@ performance characteristics similar to the native code.
 - [x] Writer
 - [x] Reader
 - [x] SASL
-- [ ] TLS
+- [x] TLS
 - [x] TCP
 - [ ] UDP
 - [ ] Deno streams
@@ -70,13 +70,13 @@ make docker
 To run the writer example
 
 ```bash
-deno run --allow-read --allow-net examples/writer.ts
+deno run --allow-read --allow-net --unstable examples/writer.ts
 ```
 
 To run the reader example
 
 ```bash
-deno run --allow-read --allow-net examples/reader.ts
+deno run --allow-read --allow-net --unstable examples/reader.ts
 ```
 
 ## Documentation
@@ -91,7 +91,7 @@ API of kafka-go closely.
 To build the WebAssemnbly module, first run
 
 ```bash
-make build
+make build-wasm
 ```
 
 To run the tests, ensure first you have docker up and running. Then start the
