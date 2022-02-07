@@ -62,7 +62,7 @@ To run the [provided examples](examples), ensure you have docker up and running.
 Then start the kafka broker using
 
 ```bash
-make docker
+make docker-up
 ```
 
 To run the writer example
