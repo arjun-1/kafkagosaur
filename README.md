@@ -1,6 +1,6 @@
 # kafkagosaur
 
-[![deno module](https://shield.deno.dev/x/kafkagosaur)](https://deno.land/x/kafkagosaur)
+[![deno module](https://img.shields.io/endpoint?url=https%3A%2F%2Fdeno-visualizer.danopia.net%2Fshields%2Flatest-version%2Fx%2Fkafkagosaur%2Fmod.ts)](https://deno.land/x/kafkagosaur)
 [![deno doc](https://doc.deno.land/badge.svg)](https://doc.deno.land/https/deno.land/x/kafkagosaur/mod.ts)
 [![CI](https://github.com/arjun-1/kafkagosaur/actions/workflows/CI.yaml/badge.svg)](https://github.com/arjun-1/kafkagosaur/actions/workflows/CI.yaml)
 [![codecov](https://codecov.io/gh/arjun-1/kafkagosaur/branch/master/graph/badge.svg)](https://codecov.io/gh/arjun-1/kafkagosaur)
