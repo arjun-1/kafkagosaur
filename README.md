@@ -23,12 +23,14 @@ For comprehensive examples on how to use kafkagosaur, head over to the
 
 #### KafkaWriter
 
-To write a message, make use of the `KafkaWriter` object on the `KafkaGoSaur`
-instance:
+To write a message, first create `KafkaWriter` instance using the `createWriter`
+function on the `KafkaGoSaur` instance:
 
 ```typescript
+import KafkaGoSaur from "https://deno.land/x/kafkagosaur/mod.ts";
+
 const kafkaGoSaur = new KafkaGoSaur();
-const writer = await kafkaGoSaur.writer({
+const writer = await kafkaGoSaur.createWriter({
   broker: "localhost:9092",
   topic: "test-0",
 });
@@ -41,12 +43,14 @@ await writer.writeMessages(msgs);
 
 #### KafkaReader
 
-To read a message, make use of the `KafkaReader` object on the `KafkaGoSaur`
-instance:
+To read a message, first create `KafkaReader` instance using the `createReader`
+function on the `KafkaGoSaur` instance:
 
 ```typescript
+import KafkaGoSaur from "https://deno.land/x/kafkagosaur/mod.ts";
+
 const kafkaGoSaur = new KafkaGoSaur();
-const reader = await kafkaGoSaur.reader({
+const reader = await kafkaGoSaur.createReader({
   brokers: ["localhost:9092"],
   topic: "test-0",
 });

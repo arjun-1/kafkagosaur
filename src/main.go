@@ -8,9 +8,9 @@ import (
 func main() {
 	c := make(chan bool)
 
-	js.Global().Set("newDialer", kafkagosaur.NewDialerJsFunc)
-	js.Global().Set("newReader", kafkagosaur.NewReaderJsFunc)
-	js.Global().Set("newWriter", kafkagosaur.NewWriterJsFunc)
+	js.Global().Set("createDialer", kafkagosaur.NewDialerJsFunc)
+	js.Global().Set("createReader", kafkagosaur.NewReaderJsFunc)
+	js.Global().Set("createWriter", kafkagosaur.NewWriterJsFunc)
 
 	<-c
 }

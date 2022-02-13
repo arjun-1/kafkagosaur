@@ -1,5 +1,5 @@
-import KafkaGoSaur from "https://deno.land/x/kafkagosaur@v0.0.3/mod.ts";
-import { SASLMechanism } from "https://deno.land/x/kafkagosaur@v0.0.3/security/sasl.ts";
+import KafkaGoSaur from "https://deno.land/x/kafkagosaur@v0.0.4/mod.ts";
+import { SASLMechanism } from "https://deno.land/x/kafkagosaur@v0.0.4/security/sasl.ts";
 
 const broker = "localhost:9093";
 const topic = "test-0";
@@ -16,7 +16,7 @@ const config = {
 };
 
 const kafkaGoSaur = new KafkaGoSaur();
-const reader = await kafkaGoSaur.reader(config);
+const reader = await kafkaGoSaur.createReader(config);
 
 const dec = new TextDecoder();
 const readMsg = await reader.readMessage();

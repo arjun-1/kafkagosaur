@@ -14,7 +14,7 @@ const withReader = (config: KafkaReaderConfig) =>
   async <T>(
     resultFn: (reader: KafkaReader) => Promise<T>,
   ): Promise<T> => {
-    const reader = await kafkaGoSaur.reader(config);
+    const reader = await kafkaGoSaur.createReader(config);
     const result = await resultFn(reader);
 
     await reader.close();
