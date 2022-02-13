@@ -2,6 +2,7 @@ package kafkagosaur
 
 import (
 	"context"
+	"log"
 	"syscall/js"
 	"time"
 
@@ -141,6 +142,10 @@ var NewReaderJsFunc = js.FuncOf(func(this js.Value, args []js.Value) interface{}
 
 	kafkaReaderConfig := kafka.ReaderConfig{
 		Dialer: kafkaDialer,
+	}
+
+	if jsLogger := readerConfigJs.Get("logger"); !jsLogger.IsUndefined() && jsLogger.Bool() {
+		kafkaReaderConfig.Logger = log.Default()
 	}
 
 	if brokers := readerConfigJs.Get("brokers"); !brokers.IsUndefined() {

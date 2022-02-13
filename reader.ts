@@ -33,6 +33,8 @@ export type KafkaReaderConfig = {
   partition?: number;
   sasl?: SASLConfig;
   tls?: TLSConfig;
+  /** Setting this to true logs internal changes within the `KafkaReader`. */
+  logger?: boolean;
 };
 
 export interface KafkaReader {

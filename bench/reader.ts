@@ -1,11 +1,13 @@
 import KafkaGoSaur from "../mod.ts";
+import { KafkaReaderConfig } from "../reader.ts";
 import { SASLMechanism } from "../security/sasl.ts";
 import { bench, runBenchmarks } from "./deps.ts";
 import { broker, password, topic, username } from "./config.ts";
 
+const nrOfRuns = 10;
 const nrOfMessages = 10000;
 
-const readerConfig = {
+const readerConfig: KafkaReaderConfig = {
   brokers: [broker],
   topic,
   sasl: {
@@ -19,11 +21,11 @@ const readerConfig = {
 };
 
 const kafkaGoSaur = new KafkaGoSaur();
-const reader = await kafkaGoSaur.reader(readerConfig);
+const reader = await kafkaGoSaur.createReader(readerConfig);
 
 bench({
   name: `readMessage#${nrOfMessages}`,
-  runs: 10,
+  runs: nrOfRuns,
   async func(b): Promise<void> {
     b.start();
 

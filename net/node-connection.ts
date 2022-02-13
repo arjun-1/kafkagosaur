@@ -133,7 +133,5 @@ export const dial: Dial = async (host: string, port: number) => {
 
   await p;
 
-  const connection = new NodeTCPConnection(socket);
-
-  return connection;
+  return new NodeTCPConnection(socket);
 };

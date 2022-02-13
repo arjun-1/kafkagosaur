@@ -1,13 +1,3 @@
-// @deno-types="./global.d.ts"
-import "./lib/wasm_exec.js";
-import { deadline, DeadlineError, delay } from "./deps.ts";
-import { DialBackend, setDialOnGlobal } from "./net/connection.ts";
-import { dial as nodeDial } from "./net/node-connection.ts";
-import { dial as denoDial } from "./net/deno-connection.ts";
-import { KafkaDialer, KafkaDialerConfig } from "./dialer.ts";
-import { KafkaReader, KafkaReaderConfig } from "./reader.ts";
-import { KafkaWriter, KafkaWriterConfig } from "./writer.ts";
-
 /**
  * A Kafka client for Deno built using WebAssembly.
  *
@@ -15,7 +5,7 @@ import { KafkaWriter, KafkaWriterConfig } from "./writer.ts";
  *
  * ```typescript
  * const kafkaGoSaur = new KafkaGoSaur();
- * const reader = await kafkaGoSaur.reader({
+ * const reader = await kafkaGoSaur.createReader({
  *  brokers: ["localhost:9092"],
  *  topic: "test-0",
  * });
@@ -27,7 +17,7 @@ import { KafkaWriter, KafkaWriterConfig } from "./writer.ts";
  *
  * ```typescript
  * const kafkaGoSaur = new KafkaGoSaur();
- * const writer = await kafkaGoSaur.writer({
+ * const writer = await kafkaGoSaur.createWriter({
  *  broker: "localhost:9092",
  *  topic: "test-0",
  * });
@@ -37,7 +27,19 @@ import { KafkaWriter, KafkaWriterConfig } from "./writer.ts";
  *
  * await writer.writeMessages(msgs);
  * ```
+ *
+ * @module
  */
+
+// @deno-types="./global.d.ts"
+import "./lib/wasm_exec.js";
+import { deadline, DeadlineError, delay } from "./deps.ts";
+import { DialBackend, setDialOnGlobal } from "./net/connection.ts";
+import { dial as nodeDial } from "./net/node-connection.ts";
+import { dial as denoDial } from "./net/deno-connection.ts";
+import { KafkaDialer, KafkaDialerConfig } from "./dialer.ts";
+import { KafkaReader, KafkaReaderConfig } from "./reader.ts";
+import { KafkaWriter, KafkaWriterConfig } from "./writer.ts";
 
 const runGoWasm = async (wasmFilePath: string): Promise<void> => {
   const go = new global.Go();
@@ -85,27 +87,27 @@ class KafkaGoSaur {
     runGoWasm("./bin/kafkagosaur.wasm");
   }
 
-  async dialer(config: KafkaDialerConfig): Promise<KafkaDialer> {
-    const newDialer = await untilGloballyDefined(
-      "newDialer",
+  async createDialer(config: KafkaDialerConfig): Promise<KafkaDialer> {
+    const create = await untilGloballyDefined(
+      "createDialer",
     ) as (config: KafkaDialerConfig) => KafkaDialer;
-    return newDialer(config);
+    return create(config);
   }
 
-  async reader(config: KafkaReaderConfig): Promise<KafkaReader> {
-    const newReader = await untilGloballyDefined(
-      "newReader",
+  async createReader(config: KafkaReaderConfig): Promise<KafkaReader> {
+    const create = await untilGloballyDefined(
+      "createReader",
     ) as (config: KafkaReaderConfig) => KafkaReader;
 
-    return newReader(config);
+    return create(config);
   }
 
-  async writer(config: KafkaWriterConfig): Promise<KafkaWriter> {
-    const newWriter = await untilGloballyDefined(
-      "newWriter",
+  async createWriter(config: KafkaWriterConfig): Promise<KafkaWriter> {
+    const create = await untilGloballyDefined(
+      "createWriter",
     ) as (config: KafkaWriterConfig) => KafkaWriter;
 
-    return newWriter(config);
+    return create(config);
   }
 }
 

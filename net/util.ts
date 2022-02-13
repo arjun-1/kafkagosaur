@@ -4,7 +4,7 @@ export const withAbsoluteDeadline = <T>(
   p: Promise<T>,
   deadlineMs?: number,
 ): Promise<T> => {
-  if (deadlineMs !== undefined) {
+  if (deadlineMs !== undefined && deadlineMs > 0) {
     const delayMs = deadlineMs - Date.now();
     return deadline(p, delayMs);
   }

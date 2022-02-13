@@ -2,6 +2,10 @@ package kafkagosaur
 
 import (
 	"context"
+	"errors"
+	"fmt"
+	"log"
+	"strings"
 	"syscall/js"
 	"time"
 
@@ -16,9 +20,23 @@ type writer struct {
 
 func (w *writer) writeMessages(msgs []kafka.Message) js.Value {
 	return interop.NewPromise(func(resolve func(interface{}), reject func(error)) {
-		err := w.underlying.WriteMessages(context.Background(), msgs...)
 
-		if err != nil {
+		switch err := w.underlying.WriteMessages(context.Background(), msgs...).(type) {
+		case nil:
+		case kafka.WriteErrors:
+			writeErrors := []string{err.Error()}
+
+			for i := range msgs {
+				if err[i] != nil && len(writeErrors) > 3 {
+					writeErrors = append(writeErrors, "...")
+					break
+				} else if err[i] != nil {
+					writeErrors = append(writeErrors, fmt.Sprintf("message %d: %s", i, err[i].Error()))
+				}
+			}
+
+			reject(errors.New(strings.Join(writeErrors, "\n")))
+		default:
 			reject(err)
 		}
 
@@ -84,9 +102,12 @@ var NewWriterJsFunc = js.FuncOf(func(this js.Value, args []js.Value) interface{}
 	}
 
 	kafkaWriter := kafka.Writer{
-		Addr: kafka.TCP(writerConfig.Get("address").String()),
-		// Logger:    log.Default(),
+		Addr:      kafka.TCP(writerConfig.Get("address").String()),
 		Transport: transport,
+	}
+
+	if jsLogger := writerConfig.Get("logger"); !jsLogger.IsUndefined() && jsLogger.Bool() {
+		kafkaWriter.Logger = log.Default()
 	}
 
 	if jsTopic := writerConfig.Get("topic"); !jsTopic.IsUndefined() {

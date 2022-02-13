@@ -1,13 +1,15 @@
 import KafkaGoSaur from "../mod.ts";
+import { KafkaWriterConfig } from "../writer.ts";
 import { SASLMechanism } from "../security/sasl.ts";
 import { bench, runBenchmarks } from "./deps.ts";
 import { broker, password, topic, username } from "./config.ts";
 
+const nrOfRuns = 10;
 const nrOfMessages = 100000;
 const msgBatchSize = 10000;
 const msgSize = 1024;
 
-const writerConfig = {
+const writerConfig: KafkaWriterConfig = {
   address: broker,
   topic,
   sasl: {
@@ -21,14 +23,14 @@ const writerConfig = {
 };
 
 const kafkaGoSaur = new KafkaGoSaur();
-const writer = await kafkaGoSaur.writer(writerConfig);
+const writer = await kafkaGoSaur.createWriter(writerConfig);
 
 const value = new Uint8Array(msgSize);
 crypto.getRandomValues(value);
 
 bench({
   name: `writeMessages#${nrOfMessages}`,
-  runs: 10,
+  runs: nrOfRuns,
   async func(b): Promise<void> {
     b.start();
 

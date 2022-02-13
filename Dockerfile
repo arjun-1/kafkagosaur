@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1.3
 
-FROM golang:1.17-alpine AS build
+FROM golang:1.17.7-alpine AS build
 
 COPY src/go.* /src/
 WORKDIR /src

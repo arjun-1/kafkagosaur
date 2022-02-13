@@ -14,7 +14,7 @@ const withKafkaConn = (
   async <T>(
     resultFn: (conn: KafkaConn) => Promise<T>,
   ): Promise<T> => {
-    const dialer = await kafkaGoSaur.dialer(config);
+    const dialer = await kafkaGoSaur.createDialer(config);
     const conn = await dialer.dial("tcp", broker);
 
     const result = await resultFn(conn);

@@ -1,5 +1,5 @@
-import KafkaGoSaur from "https://deno.land/x/kafkagosaur@v0.0.3/mod.ts";
-import { SASLMechanism } from "https://deno.land/x/kafkagosaur@v0.0.3/security/sasl.ts";
+import KafkaGoSaur from "https://deno.land/x/kafkagosaur@v0.0.4/mod.ts";
+import { SASLMechanism } from "https://deno.land/x/kafkagosaur@v0.0.4/security/sasl.ts";
 
 const broker = "localhost:9093";
 const topic = "test-0";
@@ -16,7 +16,7 @@ const writerConfig = {
 };
 
 const kafkaGoSaur = new KafkaGoSaur();
-const writer = await kafkaGoSaur.writer(writerConfig);
+const writer = await kafkaGoSaur.createWriter(writerConfig);
 
 const enc = new TextEncoder();
 const msgs = [{ value: enc.encode("value0") }, { value: enc.encode("value1") }];
