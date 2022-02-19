@@ -97,8 +97,20 @@ var NewWriterJsFunc = js.FuncOf(func(this js.Value, args []js.Value) interface{}
 		TLS:  tls,
 	}
 
+	if dialTimeout := writerConfig.Get("dialTimeout"); !dialTimeout.IsUndefined() {
+		transport.DialTimeout = time.Duration(dialTimeout.Int()) * time.Millisecond
+	}
+
 	if jsIdleTimeout := writerConfig.Get("idleTimeout"); !jsIdleTimeout.IsUndefined() {
 		transport.IdleTimeout = time.Duration(jsIdleTimeout.Int()) * time.Millisecond
+	}
+
+	if metadataTTL := writerConfig.Get("metadataTTL"); !metadataTTL.IsUndefined() {
+		transport.MetadataTTL = time.Duration(metadataTTL.Int()) * time.Millisecond
+	}
+
+	if clientId := writerConfig.Get("clientId"); !clientId.IsUndefined() {
+		transport.ClientID = clientId.String()
 	}
 
 	kafkaWriter := kafka.Writer{
@@ -106,12 +118,40 @@ var NewWriterJsFunc = js.FuncOf(func(this js.Value, args []js.Value) interface{}
 		Transport: transport,
 	}
 
-	if jsLogger := writerConfig.Get("logger"); !jsLogger.IsUndefined() && jsLogger.Bool() {
-		kafkaWriter.Logger = log.Default()
-	}
-
 	if jsTopic := writerConfig.Get("topic"); !jsTopic.IsUndefined() {
 		kafkaWriter.Topic = jsTopic.String()
+	}
+
+	if maxAttempts := writerConfig.Get("maxAttempts"); !maxAttempts.IsUndefined() {
+		kafkaWriter.MaxAttempts = maxAttempts.Int()
+	}
+
+	if batchSize := writerConfig.Get("batchSize"); !batchSize.IsUndefined() {
+		kafkaWriter.BatchSize = batchSize.Int()
+	}
+
+	if batchBytes := writerConfig.Get("batchBytes"); !batchBytes.IsUndefined() {
+		kafkaWriter.BatchBytes = int64(batchBytes.Int())
+	}
+
+	if batchTimeout := writerConfig.Get("batchTimeout"); !batchTimeout.IsUndefined() {
+		kafkaWriter.BatchTimeout = time.Duration(batchTimeout.Int()) * time.Millisecond
+	}
+
+	if readTimeout := writerConfig.Get("readTimeout"); !readTimeout.IsUndefined() {
+		kafkaWriter.ReadTimeout = time.Duration(readTimeout.Int()) * time.Millisecond
+	}
+
+	if writeTimeout := writerConfig.Get("writeTimeout"); !writeTimeout.IsUndefined() {
+		kafkaWriter.WriteTimeout = time.Duration(writeTimeout.Int()) * time.Millisecond
+	}
+
+	if async := writerConfig.Get("async"); !async.IsUndefined() {
+		kafkaWriter.Async = async.Bool()
+	}
+
+	if logger := writerConfig.Get("logger"); !logger.IsUndefined() && logger.Bool() {
+		kafkaWriter.Logger = log.Default()
 	}
 
 	return (&writer{

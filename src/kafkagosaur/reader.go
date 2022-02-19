@@ -40,13 +40,13 @@ func (r *reader) commitMessages(msgs []kafka.Message) js.Value {
 
 func (r *reader) fetchMessage() js.Value {
 	return interop.NewPromise(func(resolve func(interface{}), reject func(error)) {
-		msg, err := r.underlying.FetchMessage(context.Background())
+		message, err := r.underlying.FetchMessage(context.Background())
 
 		if err != nil {
 			reject(err)
 		}
 
-		resolve(msg)
+		resolve(messageToJSObject(message))
 	})
 }
 
@@ -144,10 +144,6 @@ var NewReaderJsFunc = js.FuncOf(func(this js.Value, args []js.Value) interface{}
 		Dialer: kafkaDialer,
 	}
 
-	if jsLogger := readerConfigJs.Get("logger"); !jsLogger.IsUndefined() && jsLogger.Bool() {
-		kafkaReaderConfig.Logger = log.Default()
-	}
-
 	if brokers := readerConfigJs.Get("brokers"); !brokers.IsUndefined() {
 		kafkaReaderConfig.Brokers = interop.MapToString(interop.ToSlice(brokers))
 	}
@@ -168,12 +164,76 @@ var NewReaderJsFunc = js.FuncOf(func(this js.Value, args []js.Value) interface{}
 		kafkaReaderConfig.Partition = partition.Int()
 	}
 
+	if queueCapacity := readerConfigJs.Get("queueCapacity"); !queueCapacity.IsUndefined() {
+		kafkaReaderConfig.QueueCapacity = queueCapacity.Int()
+	}
+
 	if minBytes := readerConfigJs.Get("minBytes"); !minBytes.IsUndefined() {
 		kafkaReaderConfig.MinBytes = minBytes.Int()
 	}
 
 	if maxBytes := readerConfigJs.Get("maxBytes"); !maxBytes.IsUndefined() {
 		kafkaReaderConfig.MaxBytes = maxBytes.Int()
+	}
+
+	if maxWait := readerConfigJs.Get("maxWait"); !maxWait.IsUndefined() {
+		kafkaReaderConfig.MaxWait = time.Millisecond * time.Duration(maxWait.Int())
+	}
+
+	if readLagInterval := readerConfigJs.Get("readLagInterval"); !readLagInterval.IsUndefined() {
+		kafkaReaderConfig.ReadLagInterval = time.Millisecond * time.Duration(readLagInterval.Int())
+	}
+
+	if heartbeatInterval := readerConfigJs.Get("heartbeatInterval"); !heartbeatInterval.IsUndefined() {
+		kafkaReaderConfig.HeartbeatInterval = time.Millisecond * time.Duration(heartbeatInterval.Int())
+	}
+
+	if commitInterval := readerConfigJs.Get("commitInterval"); !commitInterval.IsUndefined() {
+		kafkaReaderConfig.CommitInterval = time.Millisecond * time.Duration(commitInterval.Int())
+	}
+
+	if partitionWatchInterval := readerConfigJs.Get("partitionWatchInterval"); !partitionWatchInterval.IsUndefined() {
+		kafkaReaderConfig.PartitionWatchInterval = time.Millisecond * time.Duration(partitionWatchInterval.Int())
+	}
+
+	if watchPartitionChanges := readerConfigJs.Get("watchPartitionChanges"); !watchPartitionChanges.IsUndefined() {
+		kafkaReaderConfig.WatchPartitionChanges = watchPartitionChanges.Bool()
+	}
+
+	if sessionTimeout := readerConfigJs.Get("sessionTimeout"); !sessionTimeout.IsUndefined() {
+		kafkaReaderConfig.SessionTimeout = time.Millisecond * time.Duration(sessionTimeout.Int())
+	}
+
+	if rebalanceTimeout := readerConfigJs.Get("rebalanceTimeout"); !rebalanceTimeout.IsUndefined() {
+		kafkaReaderConfig.RebalanceTimeout = time.Millisecond * time.Duration(rebalanceTimeout.Int())
+	}
+
+	if joinGroupBackoff := readerConfigJs.Get("joinGroupBackoff"); !joinGroupBackoff.IsUndefined() {
+		kafkaReaderConfig.JoinGroupBackoff = time.Millisecond * time.Duration(joinGroupBackoff.Int())
+	}
+
+	if retentionTime := readerConfigJs.Get("retentionTime"); !retentionTime.IsUndefined() {
+		kafkaReaderConfig.RetentionTime = time.Millisecond * time.Duration(retentionTime.Int())
+	}
+
+	if startOffset := readerConfigJs.Get("startOffset"); !startOffset.IsUndefined() {
+		kafkaReaderConfig.StartOffset = int64(startOffset.Int())
+	}
+
+	if readBackoffMin := readerConfigJs.Get("readBackoffMin"); !readBackoffMin.IsUndefined() {
+		kafkaReaderConfig.ReadBackoffMin = time.Millisecond * time.Duration(readBackoffMin.Int())
+	}
+
+	if readBackoffMax := readerConfigJs.Get("readBackoffMax"); !readBackoffMax.IsUndefined() {
+		kafkaReaderConfig.ReadBackoffMax = time.Millisecond * time.Duration(readBackoffMax.Int())
+	}
+
+	if logger := readerConfigJs.Get("logger"); !logger.IsUndefined() && logger.Bool() {
+		kafkaReaderConfig.Logger = log.Default()
+	}
+
+	if maxAttempts := readerConfigJs.Get("maxAttempts"); !maxAttempts.IsUndefined() {
+		kafkaReaderConfig.MaxAttempts = maxAttempts.Int()
 	}
 
 	kafkaReader := kafka.NewReader(kafkaReaderConfig)
