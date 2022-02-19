@@ -119,18 +119,18 @@ deno run --allow-read --allow-net --allow-env --unstable bench/writer.ts
 
 ### Results
 
-<img width="423" alt="bench" src="https://user-images.githubusercontent.com/8102654/152859490-81464138-56ff-43d2-92db-7727458a561b.png">
+<img width="486" alt="kafka-benchmarks" src="https://user-images.githubusercontent.com/8102654/154811276-d91665c9-9026-4096-b2d5-6237bf8816c3.png">
 
-|                   | kafkagosaur[^3] | kafka-go[^2] |
-| ----------------- | --------------- | ------------ |
-| writeMessages[^1] | 3977 ± 244      | 4678 ± 207   |
-| readMessage       | 1963 ± 190      | 2784 ± 374   |
+|                   | kafka-go[^2] | kafkagosaur (`DialBackend.Node`) | kafkagosaur (`DialBackend.Deno`) |
+| ----------------- | ------------ | -------------------------------- | -------------------------------- |
+| fetchMessage      | 5236 ± 743   | 2760 ± 376                       | 2678 ± 361                       |
+| writeMessages[^1] | 5333 ± 148   | 4455 ± 159                       | N/A[^3]                          |
 
 [^1]: Batching 10.000 messages.
 
 [^2]: Using a single goroutine.
 
-[^3]: Using the `DialBackend.Node`.
+[^3]: `DialBackend.Deno` not yet functional for writing.
 
 #### Environment
 
