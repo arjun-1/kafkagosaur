@@ -33,6 +33,46 @@ export type KafkaReaderConfig = {
   partition?: number;
   sasl?: SASLConfig;
   tls?: TLSConfig;
+  /** The capacity of the internal message queue */
+  queueCapacity?: number;
+  /** Indicates to the broker the minimum batch size that the consumer will accept */
+  minBytes?: number;
+  /** Indicates to the broker the maximum batch size that the consumer will accept */
+  maxBytes?: number;
+  /** Maximum milliseconds to wait for new data to come when fetching batches of messages from kafka. */
+  maxWait?: number;
+  /** Frequency in milliseconds at which the reader lag is updated */
+  readLagInterval?: number;
+  /** Frequency in milliseconds at which the reader sends the consumer group heartbeat update. */
+  heartBeatInterval?: number;
+  /** Interval in milliseconds at which offsets are committed to the broker. */
+  commitInterval?: number;
+  /** How often in milliseconds a reader checks for partition changes */
+  partitionWatchInterval?: number;
+  /**
+   * Used to inform kafka-go that a consumer group should bepolling the brokers
+   * and rebalancing if any partition changes happen to the topic
+   */
+  watchPartitionChanges?: boolean;
+  /**
+   * Milliseconds that may pass without a heartbeat before the coordinator
+   * considers the consumer dead and initiates a rebalance.
+   */
+  sessionTimeout?: number;
+  /** Milliseconds the coordinator will wait for members to join as part of a rebalance */
+  rebalanceTimeout?: number;
+  /** Milliseconds to wait between re-joining the consumer group after an error */
+  joinGroupBackoff?: number;
+  /** Milliseconds the consumer group will be saved by the broker */
+  retentionTime?: number;
+  /** From whence the consumer group should begin consuming when it finds a partition without a committed offset */
+  startOffset?: number;
+  /** Smallest amount of milliseconds the reader will wait before polling for new messages */
+  readBackoffMin?: number;
+  /** Maximum amount of milliseconds the reader will wait before polling for new messages */
+  readBackoffMax?: number;
+  /** Limit of how many attempts will be made before delivering the error */
+  maxAttempts?: number;
   /** Setting this to true logs internal changes within the `KafkaReader`. */
   logger?: boolean;
 };

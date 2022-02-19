@@ -29,10 +29,30 @@ export type KafkaWriterConfig = {
   topic?: string;
   /** Address of the kafka cluster that this writer is configured to send messages to. */
   address: string;
-  /** Maximum amount of time that connections will remain open and unused. */
-  idleTimeout?: number;
   sasl?: SASLConfig;
   tls?: TLSConfig;
+  /** Time limit in milliseconds set for establishing connections to the kafka cluster. */
+  dialTimeout?: number;
+  /** Maximum amount of time that connections will remain open and unused. */
+  idleTimeout?: number;
+  /** TTL in milliseconds for the metadata cached by this transport. */
+  metadataTTL?: number;
+  /** Unique identifier that the transport communicates to the brokers when it sends requests. */
+  clientId?: string;
+  /** Limit on how many attempts will be made to deliver a message. */
+  maxAttempts?: number;
+  /** Limit on how many messages will be buffered before being sent to a partition */
+  batchSize?: number;
+  /** Limit the maximum size of a request in bytes before being sent to a partition. */
+  batchBytes?: number;
+  /** Time limit in milliseconds on how often incomplete message batches will be flushed to kafka. */
+  batchTimeout?: number;
+  /** Timeout in milliseconds for read operations performed by the Writer. */
+  readTimeout?: number;
+  /** Timeout in milliseconds for write operations performed by the Writer. */
+  writeTimeout?: number;
+  /** Setting this flag to true causes the WriteMessages method to never block. */
+  async?: boolean;
   /** Setting this to true logs internal changes within the `KafkaReader`. */
   logger?: boolean;
 };
