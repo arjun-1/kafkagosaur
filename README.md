@@ -119,7 +119,7 @@ deno run --allow-read --allow-net --allow-env --unstable bench/writer.ts
 
 ### Results
 
-<img width="486" alt="kafka-benchmarks" src="https://user-images.githubusercontent.com/8102654/154811276-d91665c9-9026-4096-b2d5-6237bf8816c3.png">
+<img width="486" alt="kafkagosaur-perf" src="https://user-images.githubusercontent.com/8102654/156884252-e9d7b735-7d3d-4162-a3b3-2854a1ae9baf.png">
 
 |                   | kafka-go[^2] | kafkagosaur (`DialBackend.Node`) | kafkagosaur (`DialBackend.Deno`) |
 | ----------------- | ------------ | -------------------------------- | -------------------------------- |
