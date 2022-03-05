@@ -53,8 +53,14 @@ func NewKafkaDialer(dialConfigJs js.Value) *kafka.Dialer {
 		panic(err)
 	}
 
+	var dialBackend = interop.NodeDialBackend
+
+	if dialBackendJs := dialConfigJs.Get("dialBackend"); !dialBackendJs.IsUndefined() {
+		dialBackend = interop.StringToDialBackend(dialBackendJs.String())
+	}
+
 	kafkaDialer := &kafka.Dialer{
-		DialFunc:      interop.NewDenoConn,
+		DialFunc:      interop.NewDenoConn(dialBackend),
 		SASLMechanism: saslMechanism,
 		TLS:           tls,
 	}

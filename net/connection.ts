@@ -36,12 +36,8 @@ export interface Connection {
 
 export type Dial = (hostname: string, port: number) => Promise<Connection>;
 
-export const setDialOnGlobal = (dial: Dial) => {
-  (globalThis as Record<string, unknown>).dial = dial;
-};
-
 /** Specifies the implementation backing a TCP socket connection */
 export enum DialBackend {
-  Node,
-  Deno,
+  Node = "node",
+  Deno = "deno",
 }

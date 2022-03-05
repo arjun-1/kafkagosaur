@@ -8,9 +8,15 @@ import (
 func main() {
 	c := make(chan bool)
 
-	js.Global().Set("createDialer", kafkagosaur.NewDialerJsFunc)
-	js.Global().Set("createReader", kafkagosaur.NewReaderJsFunc)
-	js.Global().Set("createWriter", kafkagosaur.NewWriterJsFunc)
+	const globalGoInteropKey = "kafkagosaur.go"
+
+	interopObject := map[string]interface{}{
+		"createDialer": kafkagosaur.NewDialerJsFunc,
+		"createReader": kafkagosaur.NewReaderJsFunc,
+		"createWriter": kafkagosaur.NewWriterJsFunc,
+	}
+
+	js.Global().Set(globalGoInteropKey, interopObject)
 
 	<-c
 }

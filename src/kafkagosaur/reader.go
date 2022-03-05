@@ -2,6 +2,7 @@ package kafkagosaur
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"syscall/js"
 	"time"
@@ -86,6 +87,10 @@ func (r *reader) setOffsetAt(t time.Time) js.Value {
 	})
 }
 
+func (r *reader) stats() js.Value {
+	return js.ValueOf(fmt.Sprintf("%+v", r.underlying.Stats()))
+}
+
 func (r *reader) toJSObject() map[string]interface{} {
 	return map[string]interface{}{
 		"close": js.FuncOf(
@@ -129,6 +134,11 @@ func (r *reader) toJSObject() map[string]interface{} {
 				time := time.UnixMilli(int64(args[0].Int()))
 
 				return r.setOffsetAt(time)
+			},
+		),
+		"stats": js.FuncOf(
+			func(this js.Value, args []js.Value) interface{} {
+				return r.stats()
 			},
 		),
 	}
@@ -177,23 +187,23 @@ var NewReaderJsFunc = js.FuncOf(func(this js.Value, args []js.Value) interface{}
 	}
 
 	if maxWait := readerConfigJs.Get("maxWait"); !maxWait.IsUndefined() {
-		kafkaReaderConfig.MaxWait = time.Millisecond * time.Duration(maxWait.Int())
+		kafkaReaderConfig.MaxWait = JsNumberMillisToDuration(maxWait)
 	}
 
 	if readLagInterval := readerConfigJs.Get("readLagInterval"); !readLagInterval.IsUndefined() {
-		kafkaReaderConfig.ReadLagInterval = time.Millisecond * time.Duration(readLagInterval.Int())
+		kafkaReaderConfig.ReadLagInterval = JsNumberMillisToDuration(readLagInterval)
 	}
 
 	if heartbeatInterval := readerConfigJs.Get("heartbeatInterval"); !heartbeatInterval.IsUndefined() {
-		kafkaReaderConfig.HeartbeatInterval = time.Millisecond * time.Duration(heartbeatInterval.Int())
+		kafkaReaderConfig.HeartbeatInterval = JsNumberMillisToDuration(heartbeatInterval)
 	}
 
 	if commitInterval := readerConfigJs.Get("commitInterval"); !commitInterval.IsUndefined() {
-		kafkaReaderConfig.CommitInterval = time.Millisecond * time.Duration(commitInterval.Int())
+		kafkaReaderConfig.CommitInterval = JsNumberMillisToDuration(commitInterval)
 	}
 
 	if partitionWatchInterval := readerConfigJs.Get("partitionWatchInterval"); !partitionWatchInterval.IsUndefined() {
-		kafkaReaderConfig.PartitionWatchInterval = time.Millisecond * time.Duration(partitionWatchInterval.Int())
+		kafkaReaderConfig.PartitionWatchInterval = JsNumberMillisToDuration(partitionWatchInterval)
 	}
 
 	if watchPartitionChanges := readerConfigJs.Get("watchPartitionChanges"); !watchPartitionChanges.IsUndefined() {
@@ -201,19 +211,19 @@ var NewReaderJsFunc = js.FuncOf(func(this js.Value, args []js.Value) interface{}
 	}
 
 	if sessionTimeout := readerConfigJs.Get("sessionTimeout"); !sessionTimeout.IsUndefined() {
-		kafkaReaderConfig.SessionTimeout = time.Millisecond * time.Duration(sessionTimeout.Int())
+		kafkaReaderConfig.SessionTimeout = JsNumberMillisToDuration(sessionTimeout)
 	}
 
 	if rebalanceTimeout := readerConfigJs.Get("rebalanceTimeout"); !rebalanceTimeout.IsUndefined() {
-		kafkaReaderConfig.RebalanceTimeout = time.Millisecond * time.Duration(rebalanceTimeout.Int())
+		kafkaReaderConfig.RebalanceTimeout = JsNumberMillisToDuration(rebalanceTimeout)
 	}
 
 	if joinGroupBackoff := readerConfigJs.Get("joinGroupBackoff"); !joinGroupBackoff.IsUndefined() {
-		kafkaReaderConfig.JoinGroupBackoff = time.Millisecond * time.Duration(joinGroupBackoff.Int())
+		kafkaReaderConfig.JoinGroupBackoff = JsNumberMillisToDuration(joinGroupBackoff)
 	}
 
 	if retentionTime := readerConfigJs.Get("retentionTime"); !retentionTime.IsUndefined() {
-		kafkaReaderConfig.RetentionTime = time.Millisecond * time.Duration(retentionTime.Int())
+		kafkaReaderConfig.RetentionTime = JsNumberMillisToDuration(retentionTime)
 	}
 
 	if startOffset := readerConfigJs.Get("startOffset"); !startOffset.IsUndefined() {
@@ -221,11 +231,11 @@ var NewReaderJsFunc = js.FuncOf(func(this js.Value, args []js.Value) interface{}
 	}
 
 	if readBackoffMin := readerConfigJs.Get("readBackoffMin"); !readBackoffMin.IsUndefined() {
-		kafkaReaderConfig.ReadBackoffMin = time.Millisecond * time.Duration(readBackoffMin.Int())
+		kafkaReaderConfig.ReadBackoffMin = JsNumberMillisToDuration(readBackoffMin)
 	}
 
 	if readBackoffMax := readerConfigJs.Get("readBackoffMax"); !readBackoffMax.IsUndefined() {
-		kafkaReaderConfig.ReadBackoffMax = time.Millisecond * time.Duration(readBackoffMax.Int())
+		kafkaReaderConfig.ReadBackoffMax = JsNumberMillisToDuration(readBackoffMax)
 	}
 
 	if logger := readerConfigJs.Get("logger"); !logger.IsUndefined() && logger.Bool() {

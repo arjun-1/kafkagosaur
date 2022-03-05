@@ -1,4 +1,5 @@
 import { Header } from "./header.ts";
+import { DialBackend } from "./net/connection.ts";
 import { SASLConfig } from "./security/sasl.ts";
 import { TLSConfig } from "./security/tls.ts";
 
@@ -75,6 +76,8 @@ export type KafkaReaderConfig = {
   maxAttempts?: number;
   /** Setting this to true logs internal changes within the `KafkaReader`. */
   logger?: boolean;
+  /** Specifies the implementation backing a TCP socket connection. Defaults to Node */
+  dialBackend?: DialBackend;
 };
 
 export interface KafkaReader {
@@ -105,4 +108,9 @@ export interface KafkaReader {
    * read given the timestamp.
    */
   setOffsetAt: (timeMs: number) => Promise<void>;
+  /**
+   * Stats returns a snapshot of the reader stats since the last time the method
+   * was called, or since the reader was created if it is called for the first time.
+   */
+  stats: () => string;
 }

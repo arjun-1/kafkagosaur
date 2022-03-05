@@ -111,31 +111,60 @@ func (c *denoTCPConn) Close() error {
 	return nil
 }
 
-func NewDenoConn(ctx context.Context, network string, address string) (net.Conn, error) {
+type DialBackend int
 
-	if network != "tcp" {
-		return nil, syscall.ENOTSUP
+const (
+	DenoDialBackend DialBackend = iota
+	NodeDialBackend DialBackend = iota
+)
+
+var dialBackendMap = map[string]DialBackend{
+	"deno": DenoDialBackend,
+	"node": NodeDialBackend,
+}
+
+func StringToDialBackend(str string) DialBackend {
+	return dialBackendMap[str]
+}
+
+type DialFunc func(ctx context.Context, network string, address string) (net.Conn, error)
+
+const globalDenoInteropKey = "kafkagosaur.deno"
+
+func NewDenoConn(dialBackend DialBackend) func(ctx context.Context, network string, address string) (net.Conn, error) {
+	return func(ctx context.Context, network string, address string) (net.Conn, error) {
+
+		if network != "tcp" {
+			return nil, syscall.ENOTSUP
+		}
+
+		host, port, err := net.SplitHostPort(address)
+		if err != nil {
+			return nil, err
+		}
+
+		portInt, err := strconv.Atoi(port)
+		if err != nil {
+			return nil, err
+		}
+
+		var jsTCPConn js.Value
+
+		switch dialBackend {
+		case DenoDialBackend:
+			jsTCPConn, err = Await(js.Global().Get(globalDenoInteropKey).Call("dialDeno", host, portInt))
+		case NodeDialBackend:
+			jsTCPConn, err = Await(js.Global().Get(globalDenoInteropKey).Call("dialNode", host, portInt))
+		}
+
+		if err != nil {
+			return nil, err
+		}
+
+		denoConn := &denoTCPConn{
+			jsConn: jsTCPConn,
+		}
+
+		return denoConn, nil
 	}
-
-	host, port, err := net.SplitHostPort(address)
-	if err != nil {
-		return nil, err
-	}
-
-	portInt, err := strconv.Atoi(port)
-	if err != nil {
-		return nil, err
-	}
-
-	jsTCPConn, err := Await(js.Global().Call("dial", host, portInt))
-
-	if err != nil {
-		return nil, err
-	}
-
-	denoConn := &denoTCPConn{
-		jsConn: jsTCPConn,
-	}
-
-	return denoConn, nil
 }

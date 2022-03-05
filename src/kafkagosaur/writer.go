@@ -7,7 +7,6 @@ import (
 	"log"
 	"strings"
 	"syscall/js"
-	"time"
 
 	"github.com/arjun-1/kafkagosaur/src/interop"
 	"github.com/segmentio/kafka-go"
@@ -55,6 +54,10 @@ func (w *writer) close() js.Value {
 	})
 }
 
+func (w *writer) stats() js.Value {
+	return js.ValueOf(fmt.Sprintf("%+v", w.underlying.Stats()))
+}
+
 func (w *writer) toJSObject() map[string]interface{} {
 	return map[string]interface{}{
 		"writeMessages": js.FuncOf(
@@ -75,6 +78,11 @@ func (w *writer) toJSObject() map[string]interface{} {
 				return w.close()
 			},
 		),
+		"stats": js.FuncOf(
+			func(this js.Value, args []js.Value) interface{} {
+				return w.stats()
+			},
+		),
 	}
 }
 
@@ -91,22 +99,28 @@ var NewWriterJsFunc = js.FuncOf(func(this js.Value, args []js.Value) interface{}
 		panic(err)
 	}
 
+	var dialBackend = interop.NodeDialBackend
+
+	if dialBackendJs := writerConfig.Get("dialBackend"); !dialBackendJs.IsUndefined() {
+		dialBackend = interop.StringToDialBackend(dialBackendJs.String())
+	}
+
 	transport := &kafka.Transport{
-		Dial: interop.NewDenoConn,
+		Dial: interop.NewDenoConn(dialBackend),
 		SASL: saslMechanism,
 		TLS:  tls,
 	}
 
 	if dialTimeout := writerConfig.Get("dialTimeout"); !dialTimeout.IsUndefined() {
-		transport.DialTimeout = time.Duration(dialTimeout.Int()) * time.Millisecond
+		transport.DialTimeout = JsNumberMillisToDuration(dialTimeout)
 	}
 
 	if jsIdleTimeout := writerConfig.Get("idleTimeout"); !jsIdleTimeout.IsUndefined() {
-		transport.IdleTimeout = time.Duration(jsIdleTimeout.Int()) * time.Millisecond
+		transport.IdleTimeout = JsNumberMillisToDuration(jsIdleTimeout)
 	}
 
 	if metadataTTL := writerConfig.Get("metadataTTL"); !metadataTTL.IsUndefined() {
-		transport.MetadataTTL = time.Duration(metadataTTL.Int()) * time.Millisecond
+		transport.MetadataTTL = JsNumberMillisToDuration(metadataTTL)
 	}
 
 	if clientId := writerConfig.Get("clientId"); !clientId.IsUndefined() {
@@ -135,15 +149,15 @@ var NewWriterJsFunc = js.FuncOf(func(this js.Value, args []js.Value) interface{}
 	}
 
 	if batchTimeout := writerConfig.Get("batchTimeout"); !batchTimeout.IsUndefined() {
-		kafkaWriter.BatchTimeout = time.Duration(batchTimeout.Int()) * time.Millisecond
+		kafkaWriter.BatchTimeout = JsNumberMillisToDuration(batchTimeout)
 	}
 
 	if readTimeout := writerConfig.Get("readTimeout"); !readTimeout.IsUndefined() {
-		kafkaWriter.ReadTimeout = time.Duration(readTimeout.Int()) * time.Millisecond
+		kafkaWriter.ReadTimeout = JsNumberMillisToDuration(readTimeout)
 	}
 
 	if writeTimeout := writerConfig.Get("writeTimeout"); !writeTimeout.IsUndefined() {
-		kafkaWriter.WriteTimeout = time.Duration(writeTimeout.Int()) * time.Millisecond
+		kafkaWriter.WriteTimeout = JsNumberMillisToDuration(writeTimeout)
 	}
 
 	if async := writerConfig.Get("async"); !async.IsUndefined() {

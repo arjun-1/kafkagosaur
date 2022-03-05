@@ -34,9 +34,8 @@
 // @deno-types="./global.d.ts"
 import "./lib/wasm_exec.js";
 import { deadline, DeadlineError, delay } from "./deps.ts";
-import { DialBackend, setDialOnGlobal } from "./net/connection.ts";
-import { dial as nodeDial } from "./net/node-connection.ts";
-import { dial as denoDial } from "./net/deno-connection.ts";
+import { dial as dialNode } from "./net/node-connection.ts";
+import { dial as dialDeno } from "./net/deno-connection.ts";
 import { KafkaDialer, KafkaDialerConfig } from "./dialer.ts";
 import { KafkaReader, KafkaReaderConfig } from "./reader.ts";
 import { KafkaWriter, KafkaWriterConfig } from "./writer.ts";
@@ -58,10 +57,15 @@ const untilGloballyDefined = (
   const backoffMs = 30;
   const maxDelayMs = 1000;
 
+  const globalGoInteropKey = "kafkagosaur.go";
+
   const loop = async (): Promise<unknown> => {
-    const value = (globalThis as Record<string, unknown>)[key];
-    if (value !== undefined) return Promise.resolve(value);
-    else {
+    const interopObject =
+      (globalThis as Record<string, unknown>)[globalGoInteropKey];
+
+    if (interopObject !== undefined) {
+      return Promise.resolve((interopObject as Record<string, unknown>)[key]);
+    } else {
       await delay(backoffMs);
       return loop();
     }
@@ -74,16 +78,15 @@ const untilGloballyDefined = (
   });
 };
 
+export const setOnGlobal = (value: unknown) => {
+  const globalDenoInteropKey = "kafkagosaur.deno";
+
+  (globalThis as Record<string, unknown>)[globalDenoInteropKey] = value;
+};
+
 class KafkaGoSaur {
-  constructor(dialBackend: DialBackend = DialBackend.Node) {
-    switch (dialBackend) {
-      case DialBackend.Node:
-        setDialOnGlobal(nodeDial);
-        break;
-      case DialBackend.Deno:
-        setDialOnGlobal(denoDial);
-        break;
-    }
+  constructor() {
+    setOnGlobal({ dialNode, dialDeno });
     runGoWasm("./bin/kafkagosaur.wasm");
   }
 
