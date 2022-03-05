@@ -11,6 +11,10 @@ jobs:
   CI:
     runs-on: ubuntu-latest
 
+    strategy:
+      matrix:
+        deno: [~1.18, ~1.19]
+
     steps:
       - name: Setup repo
         uses: actions/checkout@v2
@@ -18,7 +22,7 @@ jobs:
       - name: Setup Deno
         uses: denoland/setup-deno@v1
         with:
-          deno-version: "~1.19"
+          deno-version: ${{ matrix.deno }}
 
       - name: Setup Go
         uses: actions/setup-go@v2
