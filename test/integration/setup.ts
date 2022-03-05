@@ -6,7 +6,7 @@ import { SASLMechanism } from "../../security/sasl.ts";
 
 const kafkaGoSaur = new KafkaGoSaur();
 // Ensure promise to instantiate wasm is awaited, so no async ops are leaked.
-await delay(50);
+await delay(500);
 
 const broker = "localhost:9092";
 const brokerSASL = "localhost:9093";
