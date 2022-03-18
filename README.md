@@ -8,6 +8,8 @@
 Kafkagosaur is a Kafka client for Deno built using WebAssembly. The project
 binds to the [kafka-go](https://github.com/segmentio/kafka-go) library.
 
+See [this article](https://medium.com/@arjun.dhawan/kafkagosaur-eac3c063388) for an overview of its inner workings. 
+
 ## Supported features
 
 - [x] Writer
